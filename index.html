@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MediNote AI Demo</title>
+    <title>CareSummary – Clinical Note Assistant</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -211,14 +211,14 @@
 </head>
 <body>
 <header class="app-header">
-    <h1>MediNote AI Demo</h1>
-    <p>Prototype for summarising fake clinical notes. Do not use real patient data.</p>
+    <h1>CareSummary</h1>
+    <p>Prototype assistant for structuring and summarising clinical notes. Educational use only – not for real patients.</p>
 </header>
 
 <div class="container">
     <p class="note">
-        This demo shows two main ideas from our architecture:
-        <strong>(1)</strong> capturing a spoken note and turning it into text, and
+        This demo shows two main ideas from our cloud design:
+        <strong>(1)</strong> capturing a spoken clinical note and turning it into text, and
         <strong>(2)</strong> generating an AI-style structured summary. Everything runs in the browser for now.
     </p>
 
@@ -228,13 +228,13 @@
             <!-- Voice capture card -->
             <div class="card">
                 <h2>
-                    Voice capture (demo)
+                    Voice capture
                     <span class="badge">Browser speech recognition</span>
                 </h2>
 
                 <p class="note">
-                    Click <strong>Start recording</strong>, speak a fake “doctor note”, then click
-                    <strong>Stop</strong>. If supported by your browser, the text will appear below.
+                    Click <strong>Start recording</strong>, dictate a clinical note, then click
+                    <strong>Stop</strong>. If supported by your browser, the transcript will appear below.
                 </p>
 
                 <div id="transcriptBox" class="transcript-box">
@@ -264,12 +264,12 @@
 
             <!-- Manual note card -->
             <div class="card">
-                <h2>Input note</h2>
+                <h2>Clinical note input</h2>
 
-                <label for="patientId">Patient ID (fake/test)</label>
-                <input id="patientId" type="text" placeholder="e.g. DEMO-1234 (do not use real identifiers)" />
+                <label for="patientId">Patient ID</label>
+                <input id="patientId" type="text" placeholder="Example: CS-1234 (do not use real identifiers)" />
 
-                <label for="note"><strong>Clinical note (test text only)</strong></label>
+                <label for="note"><strong>Clinical note</strong></label>
                 <textarea id="note" placeholder="You can type here, or click 'Send to note' above to copy the transcript."></textarea>
 
                 <div class="button-row">
@@ -283,18 +283,18 @@
                 </div>
 
                 <p class="note">
-                    In the full cloud architecture, this button would call an Azure Function and an LLM (e.g. Azure OpenAI).
-                    Here it uses a local JavaScript demo function that mimics the behaviour.
+                    In the full cloud architecture, this button would call an Azure Function and an LLM (for example Azure OpenAI)
+                    inside a secured virtual network. In this prototype it uses local JavaScript logic that imitates the behaviour.
                 </p>
             </div>
         </div>
 
         <!-- RIGHT COLUMN: SUMMARY -->
         <div class="card">
-            <h2>AI-style summary (demo)</h2>
+            <h2>CareSummary output</h2>
             <div id="summaryOutput">
                 <p class="empty-state">
-                    No summary yet. Enter a test note or record a fake spoken note, then click
+                    No summary yet. Enter a clinical note or record a spoken note, then click
                     <strong>Generate summary</strong>.
                 </p>
             </div>
@@ -328,7 +328,7 @@
             const dot = document.getElementById('statusDot');
             dot.classList.add('active');
             document.getElementById('recStatus').innerHTML =
-                '<span class="status-dot active"></span>Listening... speak your test note.';
+                '<span class="status-dot active"></span>Listening... please dictate your note.';
             document.getElementById('startRecBtn').disabled = true;
             document.getElementById('stopRecBtn').disabled = false;
         };
@@ -337,7 +337,7 @@
             isRecording = false;
             document.getElementById('statusDot').classList.remove('active');
             document.getElementById('recStatus').innerHTML =
-                '<span class="status-dot"></span>Stopped. You can review the transcript or record again.';
+                '<span class="status-dot"></span>Recording stopped. You can review the transcript or record again.';
             document.getElementById('startRecBtn').disabled = false;
             document.getElementById('stopRecBtn').disabled = true;
         };
@@ -411,12 +411,12 @@
         noteEl.focus();
     }
 
-    // --- Summary demo logic (same as before, slightly adapted) ---
+    // --- Summary demo logic ---
     function clearForm() {
         document.getElementById('patientId').value = "";
         document.getElementById('note').value = "";
         document.getElementById('summaryOutput').innerHTML =
-            '<p class="empty-state">No summary yet. Enter a test note or record a fake spoken note, then click <strong>Generate summary</strong>.</p>';
+            '<p class="empty-state">No summary yet. Enter a clinical note or record a spoken note, then click <strong>Generate summary</strong>.</p>';
     }
 
     function generateSummary() {
@@ -431,7 +431,7 @@
         const patientId = patientIdEl.value.trim();
 
         if (!note) {
-            output.innerHTML = '<p class="empty-state">Please enter some test note text (or use voice capture) before generating a summary.</p>';
+            output.innerHTML = '<p class="empty-state">Please enter a clinical note (or use voice capture) before generating a summary.</p>';
             return;
         }
 
@@ -442,7 +442,7 @@
 
         // Simulate processing time like a real API/AI call
         setTimeout(() => {
-            const summaryHtml = buildFakeSummary(note, patientId);
+            const summaryHtml = buildDemoSummary(note, patientId);
             output.innerHTML = summaryHtml;
 
             btn.disabled = false;
@@ -451,7 +451,7 @@
         }, 700);
     }
 
-    function buildFakeSummary(note, patientId) {
+    function buildDemoSummary(note, patientId) {
         const length = note.length;
         const words = note.split(/\s+/).filter(Boolean);
         const wordCount = words.length;
@@ -463,24 +463,10 @@
             `Approx. length: ${wordCount} words (${length} characters).`,
             keywords.mainSymptom
                 ? `Main symptom detected: ${keywords.mainSymptom}.`
-                : `Main symptom: not clearly detected (demo limitation).`
+                : `Main symptom: not clearly detected by the current prototype.`
         ];
 
-        let problems = [];
-        if (keywords.symptoms.length > 0) {
-            problems.push("Symptoms mentioned: " + keywords.symptoms.join(", ") + ".");
-        }
-        if (keywords.conditions.length > 0) {
-            problems.push("Relevant conditions: " + keywords.conditions.join(", ") + ".");
-        }
-        if (keywords.meds.length > 0) {
-            problems.push("Possible medications: " + keywords.meds.join(", ") + ".");
-        }
-        if (problems.length === 0) {
-            problems.push("No specific clinical keywords detected. This is expected if you used very simple or random text.");
-        }
-
-        const patientLabel = patientId ? `Patient: ${patientId}` : "Patient: DEMO (no real identifier)";
+        const patientLabel = patientId ? `Patient: ${patientId}` : "Patient: example (identifier not provided)";
 
         return `
             <div class="summary-section">
@@ -490,7 +476,7 @@
             </div>
 
             <div class="summary-section">
-                <h3>Detected keywords (demo)</h3>
+                <h3>Detected keywords</h3>
                 <p>
                     ${keywords.symptoms.map(k => `<span class="pill">${k}</span>`).join("")}
                     ${keywords.conditions.map(k => `<span class="pill">${k}</span>`).join("")}
@@ -498,26 +484,26 @@
                     ${riskTags.map(k => `<span class="pill tag-danger">${k}</span>`).join("")}
                     ${keywords.symptoms.length === 0 && keywords.conditions.length === 0
                         && keywords.meds.length === 0 && riskTags.length === 0
-                        ? '<span class="empty-state">No demo keywords found.</span>' : ''}
+                        ? '<span class="empty-state">No clinical keywords were detected by the current prototype.</span>' : ''}
                 </p>
             </div>
 
             <div class="summary-section">
-                <h3>Assessment (demo only)</h3>
+                <h3>Assessment (prototype)</h3>
                 <p>
-                    Based on the detected words, this demo view suggests that there may be
-                    ${keywords.symptoms.length > 0 ? "active symptoms that should be reviewed," : "limited clinical detail in the note,"}
-                    and existing conditions ${keywords.conditions.length > 0 ? "that are relevant to the current visit." : "are not clearly stated in the text."}
-                    This text is generated by simple keyword matching and is not a real medical assessment.
+                    Based on the detected words, this view suggests that there may be
+                    ${keywords.symptoms.length > 0 ? "active symptoms that should be reviewed," : "limited structured clinical detail in the note,"}
+                    and existing conditions ${keywords.conditions.length > 0 ? "that could be relevant to the current visit." : "that are not explicitly documented in the text."}
+                    This text is generated by simple keyword matching and is not a medical assessment or diagnosis.
                 </p>
             </div>
 
             <div class="summary-section">
-                <h3>Plan (demo only)</h3>
+                <h3>Plan (prototype)</h3>
                 <p>
-                    In a real system, an AI model would propose a more detailed and clinically aligned plan
-                    (e.g. follow-up, medication adjustments, further tests). In this demo, the next step
-                    is always: <strong>the clinician reviews the note and makes the final decision.</strong>
+                    In a production system, an AI model would generate a more detailed and clinically validated plan
+                    (for example follow-up, medication changes or investigations). In this prototype,
+                    the next step is always that <strong>the clinician reviews the note and makes all clinical decisions.</strong>
                 </p>
             </div>
         `;
