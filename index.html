@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <title>MediNote AI Demo</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background-color: #f5f7fb;
@@ -29,7 +27,7 @@
             opacity: 0.9;
         }
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 24px auto;
             padding: 0 16px 32px;
         }
@@ -53,6 +51,7 @@
             border-radius: 12px;
             padding: 16px 18px;
             box-shadow: 0 1px 4px rgba(15,23,42,0.08);
+            margin-bottom: 16px;
         }
         .card h2 {
             margin-top: 0;
@@ -81,7 +80,7 @@
             border: 1px solid #d1d5db;
             font-size: 13px;
             resize: vertical;
-            min-height: 180px;
+            min-height: 140px;
         }
         textarea:focus,
         input:focus {
@@ -92,6 +91,7 @@
         .button-row {
             margin-top: 12px;
             display: flex;
+            flex-wrap: wrap;
             gap: 8px;
             align-items: center;
         }
@@ -114,9 +114,22 @@
             background-color: #e5e7eb;
             color: #374151;
         }
+        .btn-danger {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
         button:disabled {
-            opacity: 0.6;
+            opacity: 0.5;
             cursor: default;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 10px;
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            margin-left: 6px;
         }
         .spinner {
             width: 14px;
@@ -155,10 +168,6 @@
             background-color: #fee2e2;
             color: #b91c1c;
         }
-        .tag-warning {
-            background-color: #fef3c7;
-            color: #92400e;
-        }
         .tag-success {
             background-color: #dcfce7;
             color: #166534;
@@ -168,22 +177,92 @@
             color: #6b7280;
             font-style: italic;
         }
+        .transcript-box {
+            border-radius: 8px;
+            border: 1px dashed #cbd5f5;
+            background-color: #f9fafb;
+            padding: 8px;
+            min-height: 90px;
+            font-size: 12px;
+            color: #111827;
+            overflow-y: auto;
+        }
+        .transcript-placeholder {
+            color: #9ca3af;
+            font-style: italic;
+        }
+        .status-indicator {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            margin-right: 4px;
+            background-color: #9ca3af;
+        }
+        .status-dot.active {
+            background-color: #22c55e;
+        }
     </style>
 </head>
 <body>
-    <header class="app-header">
-        <h1>MediNote AI Demo</h1>
-        <p>Simple demo app for summarising fake clinical notes. Do not use real patient data.</p>
-    </header>
+<header class="app-header">
+    <h1>MediNote AI Demo</h1>
+    <p>Prototype for summarising fake clinical notes. Do not use real patient data.</p>
+</header>
 
-    <div class="container">
-        <p class="note">
-            This small app is a prototype for our cloud architecture project. It runs in the browser and simulates
-            how an AI assistant could turn free-text notes into a more structured summary.
-        </p>
+<div class="container">
+    <p class="note">
+        This demo shows two main ideas from our architecture:
+        <strong>(1)</strong> capturing a spoken note and turning it into text, and
+        <strong>(2)</strong> generating an AI-style structured summary. Everything runs in the browser for now.
+    </p>
 
-        <div class="layout">
-            <!-- LEFT: INPUT -->
+    <div class="layout">
+        <!-- LEFT COLUMN: VOICE + TEXT INPUT -->
+        <div>
+            <!-- Voice capture card -->
+            <div class="card">
+                <h2>
+                    Voice capture (demo)
+                    <span class="badge">Browser speech recognition</span>
+                </h2>
+
+                <p class="note">
+                    Click <strong>Start recording</strong>, speak a fake “doctor note”, then click
+                    <strong>Stop</strong>. If supported by your browser, the text will appear below.
+                </p>
+
+                <div id="transcriptBox" class="transcript-box">
+                    <span id="transcriptPlaceholder" class="transcript-placeholder">
+                        No voice captured yet.
+                    </span>
+                    <span id="transcriptText" style="display:none;"></span>
+                </div>
+
+                <div class="button-row">
+                    <button id="startRecBtn" class="btn-primary" type="button" onclick="startRecording()">
+                        Start recording
+                    </button>
+                    <button id="stopRecBtn" class="btn-danger" type="button" onclick="stopRecording()" disabled>
+                        Stop
+                    </button>
+                    <button class="btn-secondary" type="button" onclick="sendTranscriptToNote()">
+                        Send to note
+                    </button>
+                </div>
+
+                <div id="recStatus" class="status-indicator">
+                    <span class="status-dot" id="statusDot"></span>
+                    Ready. This demo requires Chrome or Edge for speech recognition.
+                </div>
+            </div>
+
+            <!-- Manual note card -->
             <div class="card">
                 <h2>Input note</h2>
 
@@ -191,7 +270,7 @@
                 <input id="patientId" type="text" placeholder="e.g. DEMO-1234 (do not use real identifiers)" />
 
                 <label for="note"><strong>Clinical note (test text only)</strong></label>
-                <textarea id="note" placeholder="Example: 35-year-old with history of asthma. Presents with shortness of breath and dry cough for 3 days..."></textarea>
+                <textarea id="note" placeholder="You can type here, or click 'Send to note' above to copy the transcript."></textarea>
 
                 <div class="button-row">
                     <button id="generateBtn" class="btn-primary" onclick="generateSummary()">
@@ -204,170 +283,284 @@
                 </div>
 
                 <p class="note">
-                    This is a front-end demo only. In the full architecture, this button would call an
-                    Azure Function and an LLM (e.g. Azure OpenAI) in the backend.
+                    In the full cloud architecture, this button would call an Azure Function and an LLM (e.g. Azure OpenAI).
+                    Here it uses a local JavaScript demo function that mimics the behaviour.
                 </p>
             </div>
+        </div>
 
-            <!-- RIGHT: OUTPUT -->
-            <div class="card">
-                <h2>AI-style summary (demo)</h2>
-                <div id="summaryOutput">
-                    <p class="empty-state">
-                        No summary yet. Enter a test note on the left and click <strong>Generate summary</strong>.
-                    </p>
-                </div>
+        <!-- RIGHT COLUMN: SUMMARY -->
+        <div class="card">
+            <h2>AI-style summary (demo)</h2>
+            <div id="summaryOutput">
+                <p class="empty-state">
+                    No summary yet. Enter a test note or record a fake spoken note, then click
+                    <strong>Generate summary</strong>.
+                </p>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        function clearForm() {
-            document.getElementById('patientId').value = "";
-            document.getElementById('note').value = "";
-            document.getElementById('summaryOutput').innerHTML =
-                '<p class="empty-state">No summary yet. Enter a test note on the left and click <strong>Generate summary</strong>.</p>';
+<script>
+    // --- Voice recognition (browser only) ---
+    let recognition = null;
+    let isRecording = false;
+    let fullTranscript = "";
+
+    function initSpeechRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            const status = document.getElementById('recStatus');
+            status.innerHTML = "Speech recognition is not supported in this browser. Please use Chrome or Edge for this demo.";
+            document.getElementById('startRecBtn').disabled = true;
+            document.getElementById('stopRecBtn').disabled = true;
+            return;
         }
 
-        function generateSummary() {
-            const noteEl = document.getElementById('note');
-            const patientIdEl = document.getElementById('patientId');
-            const output = document.getElementById('summaryOutput');
-            const btn = document.getElementById('generateBtn');
-            const spinner = document.getElementById('spinner');
-            const btnText = document.getElementById('btnText');
+        recognition = new SpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.continuous = true;
+        recognition.interimResults = true;
 
-            const note = noteEl.value.trim();
-            const patientId = patientIdEl.value.trim();
+        recognition.onstart = () => {
+            isRecording = true;
+            const dot = document.getElementById('statusDot');
+            dot.classList.add('active');
+            document.getElementById('recStatus').innerHTML =
+                '<span class="status-dot active"></span>Listening... speak your test note.';
+            document.getElementById('startRecBtn').disabled = true;
+            document.getElementById('stopRecBtn').disabled = false;
+        };
 
-            if (!note) {
-                output.innerHTML = '<p class="empty-state">Please enter some test note text before generating a summary.</p>';
-                return;
+        recognition.onend = () => {
+            isRecording = false;
+            document.getElementById('statusDot').classList.remove('active');
+            document.getElementById('recStatus').innerHTML =
+                '<span class="status-dot"></span>Stopped. You can review the transcript or record again.';
+            document.getElementById('startRecBtn').disabled = false;
+            document.getElementById('stopRecBtn').disabled = true;
+        };
+
+        recognition.onerror = (event) => {
+            isRecording = false;
+            document.getElementById('statusDot').classList.remove('active');
+            document.getElementById('recStatus').innerHTML =
+                '<span class="status-dot"></span>Error: ' + (event.error || 'unknown error');
+            document.getElementById('startRecBtn').disabled = false;
+            document.getElementById('stopRecBtn').disabled = true;
+        };
+
+        recognition.onresult = (event) => {
+            let interim = "";
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    fullTranscript += transcript + " ";
+                } else {
+                    interim += transcript;
+                }
             }
+            updateTranscriptBox(fullTranscript, interim);
+        };
+    }
 
-            // "Loading" state
-            btn.disabled = true;
-            spinner.style.display = 'inline-block';
-            btnText.textContent = 'Generating...';
+    function updateTranscriptBox(finalText, interimText) {
+        const placeholder = document.getElementById('transcriptPlaceholder');
+        const textSpan = document.getElementById('transcriptText');
 
-            // Simulate processing time like a real API/AI call
-            setTimeout(() => {
-                const summaryHtml = buildFakeSummary(note, patientId);
-                output.innerHTML = summaryHtml;
+        placeholder.style.display = "none";
+        textSpan.style.display = "inline";
+        textSpan.textContent = (finalText + " " + (interimText || "")).trim();
+    }
 
-                btn.disabled = false;
-                spinner.style.display = 'none';
-                btnText.textContent = 'Generate summary';
-            }, 700);
+    function startRecording() {
+        if (!recognition) {
+            initSpeechRecognition();
+        }
+        if (recognition && !isRecording) {
+            fullTranscript = ""; // clear previous
+            document.getElementById('transcriptPlaceholder').style.display = "none";
+            document.getElementById('transcriptText').textContent = "";
+            recognition.start();
+        }
+    }
+
+    function stopRecording() {
+        if (recognition && isRecording) {
+            recognition.stop();
+        }
+    }
+
+    function sendTranscriptToNote() {
+        const transcriptEl = document.getElementById('transcriptText');
+        const noteEl = document.getElementById('note');
+        const text = transcriptEl.textContent.trim();
+
+        if (!text) {
+            alert("There is no transcript yet. Please record something first.");
+            return;
         }
 
-        function buildFakeSummary(note, patientId) {
-            const length = note.length;
-            const words = note.split(/\s+/).filter(Boolean);
-            const wordCount = words.length;
+        // Append transcript to the existing note
+        if (noteEl.value.trim()) {
+            noteEl.value += "\n\n--- From voice capture ---\n" + text;
+        } else {
+            noteEl.value = text;
+        }
+        noteEl.focus();
+    }
 
-            const keywords = detectKeywords(note);
-            const riskTags = detectRiskTags(note);
+    // --- Summary demo logic (same as before, slightly adapted) ---
+    function clearForm() {
+        document.getElementById('patientId').value = "";
+        document.getElementById('note').value = "";
+        document.getElementById('summaryOutput').innerHTML =
+            '<p class="empty-state">No summary yet. Enter a test note or record a fake spoken note, then click <strong>Generate summary</strong>.</p>';
+    }
 
-            const overviewLines = [
-                `Approx. length: ${wordCount} words (${length} characters).`,
-                keywords.mainSymptom
-                    ? `Main symptom detected: ${keywords.mainSymptom}.`
-                    : `Main symptom: not clearly detected (demo limitation).`
-            ];
+    function generateSummary() {
+        const noteEl = document.getElementById('note');
+        const patientIdEl = document.getElementById('patientId');
+        const output = document.getElementById('summaryOutput');
+        const btn = document.getElementById('generateBtn');
+        const spinner = document.getElementById('spinner');
+        const btnText = document.getElementById('btnText');
 
-            let problems = [];
-            if (keywords.symptoms.length > 0) {
-                problems.push("Symptoms mentioned: " + keywords.symptoms.join(", ") + ".");
-            }
-            if (keywords.conditions.length > 0) {
-                problems.push("Relevant conditions: " + keywords.conditions.join(", ") + ".");
-            }
-            if (keywords.meds.length > 0) {
-                problems.push("Possible medications: " + keywords.meds.join(", ") + ".");
-            }
-            if (problems.length === 0) {
-                problems.push("No specific clinical keywords detected. This is expected if you used very simple or random text.");
-            }
+        const note = noteEl.value.trim();
+        const patientId = patientIdEl.value.trim();
 
-            const patientLabel = patientId ? `Patient: ${patientId}` : "Patient: DEMO (no real identifier)";
-
-            return `
-                <div class="summary-section">
-                    <h3>General</h3>
-                    <p>${patientLabel}</p>
-                    <p>${overviewLines.join(" ")}</p>
-                </div>
-
-                <div class="summary-section">
-                    <h3>Detected keywords (demo)</h3>
-                    <p>
-                        ${keywords.symptoms.map(k => `<span class="pill">${k}</span>`).join("")}
-                        ${keywords.conditions.map(k => `<span class="pill">${k}</span>`).join("")}
-                        ${keywords.meds.map(k => `<span class="pill tag-success">${k}</span>`).join("")}
-                        ${riskTags.map(k => `<span class="pill tag-danger">${k}</span>`).join("")}
-                        ${keywords.symptoms.length === 0 && keywords.conditions.length === 0
-                            && keywords.meds.length === 0 && riskTags.length === 0
-                            ? '<span class="empty-state">No demo keywords found.</span>' : ''}
-                    </p>
-                </div>
-
-                <div class="summary-section">
-                    <h3>Assessment (demo only)</h3>
-                    <p>
-                        Based on the detected words, this demo view suggests that there may be
-                        ${keywords.symptoms.length > 0 ? "active symptoms that should be reviewed," : "limited clinical detail in the note,"}
-                        and existing conditions ${keywords.conditions.length > 0 ? "that are relevant to the current visit." : "are not clearly stated in the text."}
-                        This text is generated by simple keyword matching and is not a real medical assessment.
-                    </p>
-                </div>
-
-                <div class="summary-section">
-                    <h3>Plan (demo only)</h3>
-                    <p>
-                        In a real system, an AI model would propose a more detailed and clinically aligned plan
-                        (e.g. follow-up, medication adjustments, further tests). In this demo, the next step
-                        is always: <strong>the clinician reviews the note and makes the final decision.</strong>
-                    </p>
-                </div>
-            `;
+        if (!note) {
+            output.innerHTML = '<p class="empty-state">Please enter some test note text (or use voice capture) before generating a summary.</p>';
+            return;
         }
 
-        function detectKeywords(note) {
-            const lower = note.toLowerCase();
+        // "Loading" state
+        btn.disabled = true;
+        spinner.style.display = 'inline-block';
+        btnText.textContent = 'Generating...';
 
-            const symptomWords = ["pain", "headache", "fever", "cough", "shortness of breath", "nausea", "vomiting", "dizziness", "fatigue"];
-            const conditionWords = ["diabetes", "asthma", "hypertension", "heart failure", "depression", "anxiety"];
-            const medWords = ["paracetamol", "ibuprofen", "insulin", "metformin", "antibiotic", "inhaler"];
+        // Simulate processing time like a real API/AI call
+        setTimeout(() => {
+            const summaryHtml = buildFakeSummary(note, patientId);
+            output.innerHTML = summaryHtml;
 
-            const symptoms = symptomWords.filter(w => lower.includes(w));
-            const conditions = conditionWords.filter(w => lower.includes(w));
-            const meds = medWords.filter(w => lower.includes(w));
+            btn.disabled = false;
+            spinner.style.display = 'none';
+            btnText.textContent = 'Generate summary';
+        }, 700);
+    }
 
-            let mainSymptom = "";
-            if (symptoms.length > 0) {
-                mainSymptom = symptoms[0];
-            }
+    function buildFakeSummary(note, patientId) {
+        const length = note.length;
+        const words = note.split(/\s+/).filter(Boolean);
+        const wordCount = words.length;
 
-            return { symptoms, conditions, meds, mainSymptom };
+        const keywords = detectKeywords(note);
+        const riskTags = detectRiskTags(note);
+
+        const overviewLines = [
+            `Approx. length: ${wordCount} words (${length} characters).`,
+            keywords.mainSymptom
+                ? `Main symptom detected: ${keywords.mainSymptom}.`
+                : `Main symptom: not clearly detected (demo limitation).`
+        ];
+
+        let problems = [];
+        if (keywords.symptoms.length > 0) {
+            problems.push("Symptoms mentioned: " + keywords.symptoms.join(", ") + ".");
+        }
+        if (keywords.conditions.length > 0) {
+            problems.push("Relevant conditions: " + keywords.conditions.join(", ") + ".");
+        }
+        if (keywords.meds.length > 0) {
+            problems.push("Possible medications: " + keywords.meds.join(", ") + ".");
+        }
+        if (problems.length === 0) {
+            problems.push("No specific clinical keywords detected. This is expected if you used very simple or random text.");
         }
 
-        function detectRiskTags(note) {
-            const lower = note.toLowerCase();
-            const tags = [];
+        const patientLabel = patientId ? `Patient: ${patientId}` : "Patient: DEMO (no real identifier)";
 
-            if (lower.includes("suicid") || lower.includes("self-harm") || lower.includes("harm myself")) {
-                tags.push("suicide / self-harm risk");
-            }
-            if (lower.includes("chest pain") || lower.includes("severe pain")) {
-                tags.push("possible acute pain");
-            }
-            if (lower.includes("high fever") || lower.includes("39°") || lower.includes("40°")) {
-                tags.push("high fever");
-            }
+        return `
+            <div class="summary-section">
+                <h3>General</h3>
+                <p>${patientLabel}</p>
+                <p>${overviewLines.join(" ")}</p>
+            </div>
 
-            return tags;
+            <div class="summary-section">
+                <h3>Detected keywords (demo)</h3>
+                <p>
+                    ${keywords.symptoms.map(k => `<span class="pill">${k}</span>`).join("")}
+                    ${keywords.conditions.map(k => `<span class="pill">${k}</span>`).join("")}
+                    ${keywords.meds.map(k => `<span class="pill tag-success">${k}</span>`).join("")}
+                    ${riskTags.map(k => `<span class="pill tag-danger">${k}</span>`).join("")}
+                    ${keywords.symptoms.length === 0 && keywords.conditions.length === 0
+                        && keywords.meds.length === 0 && riskTags.length === 0
+                        ? '<span class="empty-state">No demo keywords found.</span>' : ''}
+                </p>
+            </div>
+
+            <div class="summary-section">
+                <h3>Assessment (demo only)</h3>
+                <p>
+                    Based on the detected words, this demo view suggests that there may be
+                    ${keywords.symptoms.length > 0 ? "active symptoms that should be reviewed," : "limited clinical detail in the note,"}
+                    and existing conditions ${keywords.conditions.length > 0 ? "that are relevant to the current visit." : "are not clearly stated in the text."}
+                    This text is generated by simple keyword matching and is not a real medical assessment.
+                </p>
+            </div>
+
+            <div class="summary-section">
+                <h3>Plan (demo only)</h3>
+                <p>
+                    In a real system, an AI model would propose a more detailed and clinically aligned plan
+                    (e.g. follow-up, medication adjustments, further tests). In this demo, the next step
+                    is always: <strong>the clinician reviews the note and makes the final decision.</strong>
+                </p>
+            </div>
+        `;
+    }
+
+    function detectKeywords(note) {
+        const lower = note.toLowerCase();
+
+        const symptomWords = ["pain", "headache", "fever", "cough", "shortness of breath", "nausea", "vomiting", "dizziness", "fatigue"];
+        const conditionWords = ["diabetes", "asthma", "hypertension", "heart failure", "depression", "anxiety"];
+        const medWords = ["paracetamol", "ibuprofen", "insulin", "metformin", "antibiotic", "inhaler"];
+
+        const symptoms = symptomWords.filter(w => lower.includes(w));
+        const conditions = conditionWords.filter(w => lower.includes(w));
+        const meds = medWords.filter(w => lower.includes(w));
+
+        let mainSymptom = "";
+        if (symptoms.length > 0) {
+            mainSymptom = symptoms[0];
         }
-    </script>
+
+        return { symptoms, conditions, meds, mainSymptom };
+    }
+
+    function detectRiskTags(note) {
+        const lower = note.toLowerCase();
+        const tags = [];
+
+        if (lower.includes("suicid") || lower.includes("self-harm") || lower.includes("harm myself")) {
+            tags.push("suicide / self-harm risk");
+        }
+        if (lower.includes("chest pain") || lower.includes("severe pain")) {
+            tags.push("possible acute pain");
+        }
+        if (lower.includes("high fever") || lower.includes("39°") || lower.includes("40°")) {
+            tags.push("high fever");
+        }
+
+        return tags;
+    }
+
+    // init speech recognition once page is loaded
+    window.addEventListener('load', initSpeechRecognition);
+</script>
 </body>
 </html>
