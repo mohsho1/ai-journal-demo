@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Journal Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 16px;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        textarea {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 16px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            min-height: 40px;
+        }
+        .note {
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Journal Demo</h1>
+
+    <p class="note">
+        This is a training/demo application for school only.
+        Do <strong>not</strong> use real patient data.
+    </p>
+
+    <label for="note"><strong>Patient note (test text only):</strong></label><br>
+    <textarea id="note" rows="8" placeholder="Write a fake/test patient note here..."></textarea><br><br>
+
+    <button onclick="generateSummary()">
+        Generate summary
+    </button>
+
+    <div id="result" class="note">
+        The summary will appear here.
+    </div>
+
+    <script>
+        function generateSummary() {
+            const text = document.getElementById('note').value.trim();
+            const resultDiv = document.getElementById('result');
+
+            if (!text) {
+                resultDiv.textContent = "Please enter some test text first.";
+                return;
+            }
+
+            // For now this is a dummy summary.
+            // Later we will call an API/AI model from here.
+            resultDiv.innerHTML = `
+                <strong>Demo summary (not real AI yet):</strong><br>
+                - Length of note: ${text.length} characters<br>
+                - Approx. words: ${text.split(/\s+/).length} words
+            `;
+        }
+    </script>
+</body>
+</html>
