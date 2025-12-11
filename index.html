@@ -207,6 +207,11 @@
         .status-dot.active {
             background-color: #22c55e;
         }
+        .error-text {
+            font-size: 12px;
+            color: #b91c1c;
+            margin-top: 6px;
+        }
     </style>
 </head>
 <body>
@@ -217,9 +222,9 @@
 
 <div class="container">
     <p class="note">
-        This demo shows two main ideas from our cloud design:
+        This demo shows two main ideas:
         <strong>(1)</strong> capturing a spoken clinical note and turning it into text, and
-        <strong>(2)</strong> generating an AI-style structured summary. Everything runs in the browser for now.
+        <strong>(2)</strong> using an AI model (OpenAI) directly from the front end to generate a structured summary.
     </p>
 
     <div class="layout">
@@ -254,6 +259,9 @@
                     <button class="btn-secondary" type="button" onclick="sendTranscriptToNote()">
                         Send to note
                     </button>
+                    <button class="btn-secondary" type="button" onclick="clearTranscript()">
+                        Clear transcript
+                    </button>
                 </div>
 
                 <div id="recStatus" class="status-indicator">
@@ -282,9 +290,11 @@
                     </button>
                 </div>
 
+                <p id="apiError" class="error-text" style="display:none;"></p>
+
                 <p class="note">
-                    In the full cloud architecture, this button would call an Azure Function and an LLM (for example Azure OpenAI)
-                    inside a secured virtual network. In this prototype it uses local JavaScript logic that imitates the behaviour.
+                    In this prototype, the <strong>Generate summary</strong> button calls OpenAI directly from the browser
+                    (for demo purposes only – not secure for real patient data).
                 </p>
             </div>
         </div>
@@ -303,6 +313,9 @@
 </div>
 
 <script>
+    // 🔐 Put your OpenAI API key here (DEMO ONLY – not for real systems or real data)
+    const OPENAI_API_KEY = "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";
+
     // --- Voice recognition (browser only) ---
     let recognition = null;
     let isRecording = false;
@@ -369,6 +382,13 @@
         const placeholder = document.getElementById('transcriptPlaceholder');
         const textSpan = document.getElementById('transcriptText');
 
+        if (!finalText && !interimText) {
+            placeholder.style.display = "inline";
+            textSpan.style.display = "none";
+            textSpan.textContent = "";
+            return;
+        }
+
         placeholder.style.display = "none";
         textSpan.style.display = "inline";
         textSpan.textContent = (finalText + " " + (interimText || "")).trim();
@@ -379,9 +399,8 @@
             initSpeechRecognition();
         }
         if (recognition && !isRecording) {
-            fullTranscript = ""; // clear previous
-            document.getElementById('transcriptPlaceholder').style.display = "none";
-            document.getElementById('transcriptText').textContent = "";
+            fullTranscript = "";
+            updateTranscriptBox("", "");
             recognition.start();
         }
     }
@@ -402,7 +421,6 @@
             return;
         }
 
-        // Append transcript to the existing note
         if (noteEl.value.trim()) {
             noteEl.value += "\n\n--- From voice capture ---\n" + text;
         } else {
@@ -411,141 +429,155 @@
         noteEl.focus();
     }
 
-    // --- Summary demo logic ---
-    function clearForm() {
-        document.getElementById('patientId').value = "";
-        document.getElementById('note').value = "";
-        document.getElementById('summaryOutput').innerHTML =
-            '<p class="empty-state">No summary yet. Enter a clinical note or record a spoken note, then click <strong>Generate summary</strong>.</p>';
+    function clearTranscript() {
+        fullTranscript = "";
+        updateTranscriptBox("", "");
+        document.getElementById('recStatus').innerHTML =
+            '<span class="status-dot"></span>Transcript cleared. You can start a new recording.';
     }
 
-    function generateSummary() {
+    // --- AI summary directly from front end ---
+    async function generateSummary() {
         const noteEl = document.getElementById('note');
         const patientIdEl = document.getElementById('patientId');
         const output = document.getElementById('summaryOutput');
         const btn = document.getElementById('generateBtn');
         const spinner = document.getElementById('spinner');
         const btnText = document.getElementById('btnText');
+        const errorEl = document.getElementById('apiError');
+
+        errorEl.style.display = "none";
+        errorEl.textContent = "";
 
         const note = noteEl.value.trim();
-        const patientId = patientIdEl.value.trim();
+        const patientId = patientIdEl.value.trim() || "example patient";
 
         if (!note) {
             output.innerHTML = '<p class="empty-state">Please enter a clinical note (or use voice capture) before generating a summary.</p>';
             return;
         }
 
-        // "Loading" state
+        if (!OPENAI_API_KEY || OPENAI_API_KEY === "PUT_YOUR_OPENAI_KEY_HERE") {
+            errorEl.style.display = "block";
+            errorEl.textContent = "OPENAI_API_KEY is not set in the script.";
+            return;
+        }
+
+        // Loading state
         btn.disabled = true;
         spinner.style.display = 'inline-block';
         btnText.textContent = 'Generating...';
 
-        // Simulate processing time like a real API/AI call
-        setTimeout(() => {
-            const summaryHtml = buildDemoSummary(note, patientId);
-            output.innerHTML = summaryHtml;
+        try {
+            const systemPrompt =
+                "You help clinicians by summarising clinical notes. " +
+                "Your answer is for clinician support only, not directly to patients.";
 
+            const userPrompt =
+`Clinical note:
+"""${note}"""
+
+Patient identifier (may be pseudo):
+"${patientId}"
+
+Please create a concise summary with three parts:
+1) General overview of the case
+2) Assessment (what seems to be going on, in neutral language, no diagnosis if unsure)
+3) Plan (generic next steps like follow-up, monitoring, further questions – not actual prescriptions).
+
+Return your answer in this JSON format, with no extra text around it:
+
+{
+  "general": "...",
+  "assessment": "...",
+  "plan": "..."
+}`;
+
+            const response = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${OPENAI_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: "gpt-4o-mini",   // or another model you have access to
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: userPrompt }
+                    ],
+                    temperature: 0.3
+                })
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`OpenAI error ${response.status}: ${text}`);
+            }
+
+            const data = await response.json();
+            const content = data.choices?.[0]?.message?.content || "";
+
+            let general = "";
+            let assessment = "";
+            let plan = "";
+
+            try {
+                const aiJson = JSON.parse(content);
+                general = aiJson.general || "";
+                assessment = aiJson.assessment || "";
+                plan = aiJson.plan || "";
+            } catch (e) {
+                // If the model didn't return valid JSON, show raw content
+                general = content;
+            }
+
+            output.innerHTML = `
+                <div class="summary-section">
+                    <h3>General</h3>
+                    <p>${escapeHtml(general)}</p>
+                </div>
+                <div class="summary-section">
+                    <h3>Assessment</h3>
+                    <p>${escapeHtml(assessment)}</p>
+                </div>
+                <div class="summary-section">
+                    <h3>Plan</h3>
+                    <p>${escapeHtml(plan)}</p>
+                </div>
+            `;
+        } catch (err) {
+            console.error(err);
+            errorEl.style.display = "block";
+            errorEl.textContent = "Failed to call AI: " + err.message;
+            output.innerHTML = '<p class="empty-state">Could not generate summary. Please try again.</p>';
+        } finally {
             btn.disabled = false;
             spinner.style.display = 'none';
             btnText.textContent = 'Generate summary';
-        }, 700);
+        }
     }
 
-    function buildDemoSummary(note, patientId) {
-        const length = note.length;
-        const words = note.split(/\s+/).filter(Boolean);
-        const wordCount = words.length;
-
-        const keywords = detectKeywords(note);
-        const riskTags = detectRiskTags(note);
-
-        const overviewLines = [
-            `Approx. length: ${wordCount} words (${length} characters).`,
-            keywords.mainSymptom
-                ? `Main symptom detected: ${keywords.mainSymptom}.`
-                : `Main symptom: not clearly detected by the current prototype.`
-        ];
-
-        const patientLabel = patientId ? `Patient: ${patientId}` : "Patient: example (identifier not provided)";
-
-        return `
-            <div class="summary-section">
-                <h3>General</h3>
-                <p>${patientLabel}</p>
-                <p>${overviewLines.join(" ")}</p>
-            </div>
-
-            <div class="summary-section">
-                <h3>Detected keywords</h3>
-                <p>
-                    ${keywords.symptoms.map(k => `<span class="pill">${k}</span>`).join("")}
-                    ${keywords.conditions.map(k => `<span class="pill">${k}</span>`).join("")}
-                    ${keywords.meds.map(k => `<span class="pill tag-success">${k}</span>`).join("")}
-                    ${riskTags.map(k => `<span class="pill tag-danger">${k}</span>`).join("")}
-                    ${keywords.symptoms.length === 0 && keywords.conditions.length === 0
-                        && keywords.meds.length === 0 && riskTags.length === 0
-                        ? '<span class="empty-state">No clinical keywords were detected by the current prototype.</span>' : ''}
-                </p>
-            </div>
-
-            <div class="summary-section">
-                <h3>Assessment (prototype)</h3>
-                <p>
-                    Based on the detected words, this view suggests that there may be
-                    ${keywords.symptoms.length > 0 ? "active symptoms that should be reviewed," : "limited structured clinical detail in the note,"}
-                    and existing conditions ${keywords.conditions.length > 0 ? "that could be relevant to the current visit." : "that are not explicitly documented in the text."}
-                    This text is generated by simple keyword matching and is not a medical assessment or diagnosis.
-                </p>
-            </div>
-
-            <div class="summary-section">
-                <h3>Plan (prototype)</h3>
-                <p>
-                    In a production system, an AI model would generate a more detailed and clinically validated plan
-                    (for example follow-up, medication changes or investigations). In this prototype,
-                    the next step is always that <strong>the clinician reviews the note and makes all clinical decisions.</strong>
-                </p>
-            </div>
-        `;
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
     }
 
-    function detectKeywords(note) {
-        const lower = note.toLowerCase();
-
-        const symptomWords = ["pain", "headache", "fever", "cough", "shortness of breath", "nausea", "vomiting", "dizziness", "fatigue"];
-        const conditionWords = ["diabetes", "asthma", "hypertension", "heart failure", "depression", "anxiety"];
-        const medWords = ["paracetamol", "ibuprofen", "insulin", "metformin", "antibiotic", "inhaler"];
-
-        const symptoms = symptomWords.filter(w => lower.includes(w));
-        const conditions = conditionWords.filter(w => lower.includes(w));
-        const meds = medWords.filter(w => lower.includes(w));
-
-        let mainSymptom = "";
-        if (symptoms.length > 0) {
-            mainSymptom = symptoms[0];
+    function clearForm() {
+        document.getElementById('patientId').value = "";
+        document.getElementById('note').value = "";
+        document.getElementById('summaryOutput').innerHTML =
+            '<p class="empty-state">No summary yet. Enter a clinical note or record a spoken note, then click <strong>Generate summary</strong>.</p>';
+        const errorEl = document.getElementById('apiError');
+        if (errorEl) {
+            errorEl.style.display = "none";
+            errorEl.textContent = "";
         }
-
-        return { symptoms, conditions, meds, mainSymptom };
+        clearTranscript();
     }
 
-    function detectRiskTags(note) {
-        const lower = note.toLowerCase();
-        const tags = [];
-
-        if (lower.includes("suicid") || lower.includes("self-harm") || lower.includes("harm myself")) {
-            tags.push("suicide / self-harm risk");
-        }
-        if (lower.includes("chest pain") || lower.includes("severe pain")) {
-            tags.push("possible acute pain");
-        }
-        if (lower.includes("high fever") || lower.includes("39°") || lower.includes("40°")) {
-            tags.push("high fever");
-        }
-
-        return tags;
-    }
-
-    // init speech recognition once page is loaded
     window.addEventListener('load', initSpeechRecognition);
 </script>
 </body>
