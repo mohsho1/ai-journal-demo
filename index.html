@@ -1,125 +1,520 @@
-module.exports = async function (context, req) {
-    context.log('SummarizeNote HTTP trigger processed a request.');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CareSummary – Clinical Note Assistant</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: #f5f7fb;
+            margin: 0;
+            padding: 0;
+        }
+        .app-header {
+            background: linear-gradient(90deg, #2563eb, #1d4ed8);
+            color: white;
+            padding: 16px 24px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .app-header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+        .app-header p {
+            margin: 4px 0 0 0;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 24px auto;
+            padding: 0 16px 32px;
+        }
+        .note {
+            font-size: 11px;
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+        .layout {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 20px;
+        }
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 16px 18px;
+            box-shadow: 0 1px 4px rgba(15,23,42,0.08);
+            margin-bottom: 16px;
+        }
+        .card h2 {
+            margin-top: 0;
+            font-size: 16px;
+            color: #111827;
+        }
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            display: block;
+            margin-bottom: 4px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 140px;
+        }
+        textarea:focus,
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 1px rgba(37,99,235,0.3);
+        }
+        .button-row {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        button {
+            padding: 9px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #2563eb, #1d4ed8);
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+        .btn-danger {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 10px;
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            margin-left: 6px;
+        }
+        .spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.5);
+            border-top-color: #ffffff;
+            border-radius: 999px;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .summary-section {
+            margin-bottom: 12px;
+        }
+        .summary-section h3 {
+            margin: 0 0 4px 0;
+            font-size: 13px;
+            color: #111827;
+        }
+        .summary-section p {
+            margin: 0;
+            font-size: 12px;
+            color: #374151;
+        }
+        .empty-state {
+            font-size: 12px;
+            color: #6b7280;
+            font-style: italic;
+        }
+        .transcript-box {
+            border-radius: 8px;
+            border: 1px dashed #cbd5f5;
+            background-color: #f9fafb;
+            padding: 8px;
+            min-height: 90px;
+            font-size: 12px;
+            color: #111827;
+            overflow-y: auto;
+        }
+        .transcript-placeholder {
+            color: #9ca3af;
+            font-style: italic;
+        }
+        .status-indicator {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            margin-right: 4px;
+            background-color: #9ca3af;
+        }
+        .status-dot.active {
+            background-color: #22c55e;
+        }
+        .error-text {
+            font-size: 12px;
+            color: #b91c1c;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+<header class="app-header">
+    <h1>CareSummary</h1>
+    <p>Prototype assistant for structuring and summarising clinical notes. Educational use only – not for real patients.</p>
+</header>
 
-    const note = (req.body && req.body.note) || "";
-    const patientId = (req.body && req.body.patientId) || "";
+<div class="container">
+    <p class="note">
+        This demo shows two main ideas:
+        <strong>(1)</strong> capturing a spoken clinical note and turning it into text, and
+        <strong>(2)</strong> sending the note to an Azure Function (<code>SummarizeNote</code>) that returns a summary.
+    </p>
 
-    if (!note.trim()) {
-        context.res = {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-            body: { error: "Field 'note' is required in the request body." }
+    <div class="layout">
+        <!-- LEFT COLUMN: VOICE + TEXT INPUT -->
+        <div>
+            <!-- Voice capture card -->
+            <div class="card">
+                <h2>
+                    Voice capture
+                    <span class="badge">Browser speech recognition</span>
+                </h2>
+
+                <p class="note">
+                    Click <strong>Start recording</strong>, dictate a clinical note, then click
+                    <strong>Stop</strong>. If supported by your browser, the transcript will appear below.
+                </p>
+
+                <div id="transcriptBox" class="transcript-box">
+                    <span id="transcriptPlaceholder" class="transcript-placeholder">
+                        No voice captured yet.
+                    </span>
+                    <span id="transcriptText" style="display:none;"></span>
+                </div>
+
+                <div class="button-row">
+                    <button id="startRecBtn" class="btn-primary" type="button" onclick="startRecording()">
+                        Start recording
+                    </button>
+                    <button id="stopRecBtn" class="btn-danger" type="button" onclick="stopRecording()" disabled>
+                        Stop
+                    </button>
+                    <button class="btn-secondary" type="button" onclick="sendTranscriptToNote()">
+                        Send to note
+                    </button>
+                    <button class="btn-secondary" type="button" onclick="clearTranscript()">
+                        Clear transcript
+                    </button>
+                </div>
+
+                <div id="recStatus" class="status-indicator">
+                    <span class="status-dot" id="statusDot"></span>
+                    Ready. This demo requires Chrome or Edge for speech recognition.
+                </div>
+            </div>
+
+            <!-- Manual note card -->
+            <div class="card">
+                <h2>Clinical note input</h2>
+
+                <label for="patientId">Patient ID (fake)</label>
+                <input id="patientId" type="text" placeholder="Example: CS-1234">
+
+                <label for="note"><strong>Clinical note</strong></label>
+                <textarea id="note" placeholder="You can type here, or click 'Send to note' above to copy the transcript."></textarea>
+
+                <div class="button-row">
+                    <button id="generateBtn" class="btn-primary" onclick="generateSummary()">
+                        <div id="spinner" class="spinner" style="display:none;"></div>
+                        <span id="btnText">Generate summary</span>
+                    </button>
+                    <button class="btn-secondary" type="button" onclick="clearForm()">
+                        Clear
+                    </button>
+                </div>
+
+                <p id="apiError" class="error-text" style="display:none;"></p>
+
+                <p class="note">
+                    The <strong>Generate summary</strong> button calls an Azure Function API
+                    (<code>/api/SummarizeNote</code>) which returns JSON with General / Assessment / Plan.
+                </p>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: SUMMARY -->
+        <div class="card">
+            <h2>CareSummary output</h2>
+            <div id="summaryOutput">
+                <p class="empty-state">
+                    No summary yet. Enter a clinical note or record a spoken note, then click
+                    <strong>Generate summary</strong>.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 👉 Your Azure Function URL
+    const API_URL = "https://caresummary-api-feerbpb5b8gwf6cf.westeurope-01.azurewebsites.net/api/SummarizeNote";
+
+    // --- Voice recognition (browser only) ---
+    let recognition = null;
+    let isRecording = false;
+    let fullTranscript = "";
+
+    function initSpeechRecognition() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            const status = document.getElementById('recStatus');
+            status.innerHTML = "Speech recognition is not supported in this browser. Please use Chrome or Edge for this demo.";
+            document.getElementById('startRecBtn').disabled = true;
+            document.getElementById('stopRecBtn').disabled = true;
+            return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onstart = () => {
+            isRecording = true;
+            const dot = document.getElementById('statusDot');
+            dot.classList.add('active');
+            document.getElementById('recStatus').innerHTML =
+                '<span class="status-dot active"></span>Listening... please dictate your note.';
+            document.getElementById('startRecBtn').disabled = true;
+            document.getElementById('stopRecBtn').disabled = false;
         };
-        return;
+
+        recognition.onend = () => {
+            isRecording = false;
+            document.getElementById('statusDot').classList.remove('active');
+            document.getElementById('recStatus').innerHTML =
+                '<span class="status-dot"></span>Recording stopped. You can review the transcript or record again.';
+            document.getElementById('startRecBtn').disabled = false;
+            document.getElementById('stopRecBtn').disabled = true;
+        };
+
+        recognition.onerror = (event) => {
+            isRecording = false;
+            document.getElementById('statusDot').classList.remove('active');
+            document.getElementById('recStatus').innerHTML =
+                '<span class="status-dot"></span>Error: ' + (event.error || 'unknown error');
+            document.getElementById('startRecBtn').disabled = false;
+            document.getElementById('stopRecBtn').disabled = true;
+        };
+
+        recognition.onresult = (event) => {
+            let interim = "";
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    fullTranscript += transcript + " ";
+                } else {
+                    interim += transcript;
+                }
+            }
+            updateTranscriptBox(fullTranscript, interim);
+        };
     }
 
-    // --- Simple local analysis (no AI) ---
+    function updateTranscriptBox(finalText, interimText) {
+        const placeholder = document.getElementById('transcriptPlaceholder');
+        const textSpan = document.getElementById('transcriptText');
 
-    // Stats
-    const length = note.length;
-    const words = note.trim().split(/\s+/).filter(Boolean);
-    const wordCount = words.length;
+        if (!finalText && !interimText) {
+            placeholder.style.display = "inline";
+            textSpan.style.display = "none";
+            textSpan.textContent = "";
+            return;
+        }
 
-    // Very simple keyword detection
-    const lower = note.toLowerCase();
-    const symptomWords = [
-        "pain",
-        "headache",
-        "fever",
-        "cough",
-        "shortness of breath",
-        "nausea",
-        "vomiting",
-        "dizziness",
-        "fatigue"
-    ];
-    const conditionWords = [
-        "diabetes",
-        "asthma",
-        "hypertension",
-        "heart failure",
-        "depression",
-        "anxiety"
-    ];
-    const medWords = [
-        "paracetamol",
-        "ibuprofen",
-        "insulin",
-        "metformin",
-        "antibiotic",
-        "inhaler"
-    ];
-
-    const symptoms = symptomWords.filter(w => lower.includes(w));
-    const conditions = conditionWords.filter(w => lower.includes(w));
-    const meds = medWords.filter(w => lower.includes(w));
-
-    let mainSymptom = "";
-    if (symptoms.length > 0) {
-        mainSymptom = symptoms[0];
+        placeholder.style.display = "none";
+        textSpan.style.display = "inline";
+        textSpan.textContent = (finalText + " " + (interimText || "")).trim();
     }
 
-    // Simple risk tags
-    const riskTags = [];
-    if (lower.includes("suicid") || lower.includes("self-harm") || lower.includes("harm myself")) {
-        riskTags.push("suicide / self-harm risk");
-    }
-    if (lower.includes("chest pain") || lower.includes("severe pain")) {
-        riskTags.push("possible acute pain");
-    }
-    if (lower.includes("high fever") || lower.includes("39°") || lower.includes("40°")) {
-        riskTags.push("high fever");
+    function startRecording() {
+        if (!recognition) {
+            initSpeechRecognition();
+        }
+        if (recognition && !isRecording) {
+            fullTranscript = "";
+            updateTranscriptBox("", "");
+            recognition.start();
+        }
     }
 
-    const patientLabel = patientId || "example (no identifier provided)";
-
-    // --- Build simple, non-AI summary texts ---
-
-    const general = `Approx. length: ${wordCount} words (${length} characters).`;
-
-    let assessmentParts = [];
-    if (mainSymptom) {
-        assessmentParts.push(`Main recorded symptom: ${mainSymptom}.`);
+    function stopRecording() {
+        if (recognition && isRecording) {
+            recognition.stop();
+        }
     }
-    if (conditions.length > 0) {
-        assessmentParts.push(`Mentioned conditions: ${conditions.join(", ")}.`);
-    }
-    if (riskTags.length > 0) {
-        assessmentParts.push(`Potential risk tags detected: ${riskTags.join(", ")}.`);
-    }
-    if (assessmentParts.length === 0) {
-        assessmentParts.push("No specific symptoms or conditions were automatically detected in this prototype.");
-    }
-    assessmentParts.push("This is a simple prototype analysis. All clinical reasoning must be done by the clinician.");
-    const assessment = assessmentParts.join(" ");
 
-    const plan =
-        "Prototype plan: this system only helps structure the note. " +
-        "Any medical decisions (investigations, treatment, follow-up) must be decided by the clinician. " +
-        "In a future version, an AI/LLM could suggest a more detailed plan, but always as decision support – not as a final diagnosis.";
+    function sendTranscriptToNote() {
+        const transcriptEl = document.getElementById('transcriptText');
+        const noteEl = document.getElementById('note');
+        const text = transcriptEl.textContent.trim();
 
-    // --- Response payload ---
-    const responseBody = {
-        patientId: patientLabel,
-        stats: {
-            characters: length,
-            words: wordCount
-        },
-        keywords: {
-            symptoms,
-            conditions,
-            medications: meds,
-            riskTags,
-            mainSymptom: mainSymptom || null
-        },
-        general,
-        assessment,
-        plan
-    };
+        if (!text) {
+            alert("There is no transcript yet. Please record something first.");
+            return;
+        }
 
-    context.res = {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-        body: responseBody
-    };
-};
+        if (noteEl.value.trim()) {
+            noteEl.value += "\n\n--- From voice capture ---\n" + text;
+        } else {
+            noteEl.value = text;
+        }
+        noteEl.focus();
+    }
+
+    function clearTranscript() {
+        fullTranscript = "";
+        updateTranscriptBox("", "");
+        document.getElementById('recStatus').innerHTML =
+            '<span class="status-dot"></span>Transcript cleared. You can start a new recording.';
+    }
+
+    // --- Call Azure Function for summary ---
+    async function generateSummary() {
+        const noteEl = document.getElementById('note');
+        const patientIdEl = document.getElementById('patientId');
+        const output = document.getElementById('summaryOutput');
+        const btn = document.getElementById('generateBtn');
+        const spinner = document.getElementById('spinner');
+        const btnText = document.getElementById('btnText');
+        const errorEl = document.getElementById('apiError');
+
+        errorEl.style.display = "none";
+        errorEl.textContent = "";
+
+        const note = noteEl.value.trim();
+        const patientId = patientIdEl.value.trim();
+
+        if (!note) {
+            output.innerHTML = '<p class="empty-state">Please enter a clinical note (or use voice capture) before generating a summary.</p>';
+            return;
+        }
+
+        btn.disabled = true;
+        spinner.style.display = 'inline-block';
+        btnText.textContent = 'Generating...';
+
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ note, patientId })
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`API error ${response.status}: ${text}`);
+            }
+
+            const data = await response.json();
+            renderSummary(data);
+        } catch (err) {
+            console.error(err);
+            errorEl.style.display = "block";
+            errorEl.textContent = "Failed to call backend API: " + err.message;
+            output.innerHTML = '<p class="empty-state">Could not generate summary. Please try again or check the Function.</p>';
+        } finally {
+            btn.disabled = false;
+            spinner.style.display = 'none';
+            btnText.textContent = 'Generate summary';
+        }
+    }
+
+    function renderSummary(data) {
+        const output = document.getElementById('summaryOutput');
+
+        const general = data.general || "";
+        const assessment = data.assessment || "";
+        const plan = data.plan || "";
+
+        output.innerHTML = `
+            <div class="summary-section">
+                <h3>General</h3>
+                <p>${escapeHtml(general || "No general text returned from API.")}</p>
+            </div>
+            <div class="summary-section">
+                <h3>Assessment</h3>
+                <p>${escapeHtml(assessment || "No assessment text returned from API.")}</p>
+            </div>
+            <div class="summary-section">
+                <h3>Plan</h3>
+                <p>${escapeHtml(plan || "No plan text returned from API.")}</p>
+            </div>
+        `;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+
+    function clearForm() {
+        document.getElementById('patientId').value = "";
+        document.getElementById('note').value = "";
+        document.getElementById('summaryOutput').innerHTML =
+            '<p class="empty-state">No summary yet. Enter a clinical note or record a spoken note, then click <strong>Generate summary</strong>.</p>';
+        const errorEl = document.getElementById('apiError');
+        if (errorEl) {
+            errorEl.style.display = "none";
+            errorEl.textContent = "";
+        }
+        clearTranscript();
+    }
+
+    window.addEventListener('load', initSpeechRecognition);
+</script>
+</body>
+</html>
