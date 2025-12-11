@@ -1,229 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CareSummary – Demo</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: #f5f7fb;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: linear-gradient(90deg, #2563eb, #1d4ed8);
+            color: white;
+            padding: 16px 24px;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+        header p {
+            margin: 4px 0 0;
+            font-size: 13px;
+            opacity: .9;
+        }
+        .container {
+            max-width: 900px;
+            margin: 24px auto;
+            padding: 0 16px 32px;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #374151;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            font-size: 13px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+        }
+        textarea {
+            min-height: 140px;
+            resize: vertical;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 1px rgba(37,99,235,.3);
+        }
+        button {
+            margin-top: 12px;
+            padding: 9px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(90deg, #2563eb, #1d4ed8);
+            color: white;
+        }
+        button:disabled {
+            opacity: .5;
+            cursor: default;
+        }
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 16px;
+        }
+        @media (max-width: 800px) {
+            .row { grid-template-columns: 1fr; }
+        }
+        .card {
+            background: white;
+            padding: 16px;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(15,23,42,.08);
+        }
+        .card h2 {
+            margin-top: 0;
+            font-size: 16px;
+        }
+        .output-block h3 {
+            margin: 10px 0 4px;
+            font-size: 14px;
+        }
+        .output-block p {
+            margin: 0;
+            font-size: 13px;
+            color: #374151;
+        }
+        .empty {
+            font-size: 12px;
+            color: #6b7280;
+            font-style: italic;
+        }
+        .error-text {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #b91c1c;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>CareSummary</h1>
+    <p>Simple demo: send a clinical note to our Azure Function and show the summary.</p>
+</header>
+
+<div class="container">
+    <div class="row">
+        <!-- LEFT: input -->
+        <div class="card">
+            <h2>Input</h2>
+            <label for="patientId">Patient ID (fake)</label>
+            <input id="patientId" type="text" placeholder="Example: CS-1234">
+
+            <label for="note" style="margin-top:10px;">Clinical note</label>
+            <textarea id="note" placeholder="Write a fake clinical note here (no real patient data)."></textarea>
+
+            <button id="generateBtn" onclick="generateSummary()">Generate summary</button>
+            <p id="error" class="error-text" style="display:none;"></p>
+        </div>
+
+        <!-- RIGHT: output -->
+        <div class="card">
+            <h2>Summary (from Azure)</h2>
+            <div id="summaryOutput">
+                <p class="empty">No summary yet. Enter a note and click “Generate summary”.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    // 👉 Din Azure Function (SummarizeNote)
+    // 👉 Your Azure Function URL
     const API_URL = "https://caresummary-api-feerbpb5b8gwf6cf.westeurope-01.azurewebsites.net/api/SummarizeNote";
 
-    // --- Voice recognition (browser only) ---
-    let recognition = null;
-    let isRecording = false;
-    let fullTranscript = "";
-
-    function initSpeechRecognition() {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            const status = document.getElementById('recStatus');
-            status.innerHTML = "Speech recognition is not supported in this browser. Please use Chrome or Edge for this demo.";
-            document.getElementById('startRecBtn').disabled = true;
-            document.getElementById('stopRecBtn').disabled = true;
-            return;
-        }
-
-        recognition = new SpeechRecognition();
-        recognition.lang = "en-US";
-        recognition.continuous = true;
-        recognition.interimResults = true;
-
-        recognition.onstart = () => {
-            isRecording = true;
-            const dot = document.getElementById('statusDot');
-            dot.classList.add('active');
-            document.getElementById('recStatus').innerHTML =
-                '<span class="status-dot active"></span>Listening... please dictate your note.';
-            document.getElementById('startRecBtn').disabled = true;
-            document.getElementById('stopRecBtn').disabled = false;
-        };
-
-        recognition.onend = () => {
-            isRecording = false;
-            document.getElementById('statusDot').classList.remove('active');
-            document.getElementById('recStatus').innerHTML =
-                '<span class="status-dot"></span>Recording stopped. You can review the transcript or record again.';
-            document.getElementById('startRecBtn').disabled = false;
-            document.getElementById('stopRecBtn').disabled = true;
-        };
-
-        recognition.onerror = (event) => {
-            isRecording = false;
-            document.getElementById('statusDot').classList.remove('active');
-            document.getElementById('recStatus').innerHTML =
-                '<span class="status-dot"></span>Error: ' + (event.error || 'unknown error');
-            document.getElementById('startRecBtn').disabled = false;
-            document.getElementById('stopRecBtn').disabled = true;
-        };
-
-        recognition.onresult = (event) => {
-            let interim = "";
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                const transcript = event.results[i][0].transcript;
-                if (event.results[i].isFinal) {
-                    fullTranscript += transcript + " ";
-                } else {
-                    interim += transcript;
-                }
-            }
-            updateTranscriptBox(fullTranscript, interim);
-        };
-    }
-
-    function updateTranscriptBox(finalText, interimText) {
-        const placeholder = document.getElementById('transcriptPlaceholder');
-        const textSpan = document.getElementById('transcriptText');
-
-        if (!finalText && !interimText) {
-            placeholder.style.display = "inline";
-            textSpan.style.display = "none";
-            textSpan.textContent = "";
-            return;
-        }
-
-        placeholder.style.display = "none";
-        textSpan.style.display = "inline";
-        textSpan.textContent = (finalText + " " + (interimText || "")).trim();
-    }
-
-    function startRecording() {
-        if (!recognition) {
-            initSpeechRecognition();
-        }
-        if (recognition && !isRecording) {
-            fullTranscript = "";
-            updateTranscriptBox("", "");
-            recognition.start();
-        }
-    }
-
-    function stopRecording() {
-        if (recognition && isRecording) {
-            recognition.stop();
-        }
-    }
-
-    function sendTranscriptToNote() {
-        const transcriptEl = document.getElementById('transcriptText');
-        const noteEl = document.getElementById('note');
-        const text = transcriptEl.textContent.trim();
-
-        if (!text) {
-            alert("There is no transcript yet. Please record something first.");
-            return;
-        }
-
-        if (noteEl.value.trim()) {
-            noteEl.value += "\n\n--- From voice capture ---\n" + text;
-        } else {
-            noteEl.value = text;
-        }
-        noteEl.focus();
-    }
-
-    function clearTranscript() {
-        fullTranscript = "";
-        updateTranscriptBox("", "");
-        document.getElementById('recStatus').innerHTML =
-            '<span class="status-dot"></span>Transcript cleared. You can start a new recording.';
-    }
-
-    // --- Call Azure Function for summary ---
     async function generateSummary() {
-        const noteEl = document.getElementById('note');
-        const patientIdEl = document.getElementById('patientId');
-        const output = document.getElementById('summaryOutput');
-        const btn = document.getElementById('generateBtn');
-        const spinner = document.getElementById('spinner');
-        const btnText = document.getElementById('btnText');
-        const errorEl = document.getElementById('apiError');
+        const noteEl = document.getElementById("note");
+        const patientIdEl = document.getElementById("patientId");
+        const out = document.getElementById("summaryOutput");
+        const btn = document.getElementById("generateBtn");
+        const errEl = document.getElementById("error");
 
-        errorEl.style.display = "none";
-        errorEl.textContent = "";
+        errEl.style.display = "none";
+        errEl.textContent = "";
 
         const note = noteEl.value.trim();
         const patientId = patientIdEl.value.trim();
 
         if (!note) {
-            output.innerHTML = '<p class="empty-state">Please enter a clinical note (or use voice capture) before generating a summary.</p>';
+            out.innerHTML = '<p class="empty">Please write a note first.</p>';
             return;
         }
 
         btn.disabled = true;
-        spinner.style.display = 'inline-block';
-        btnText.textContent = 'Generating...';
+        btn.textContent = "Generating...";
 
         try {
-            const response = await fetch(API_URL, {
+            const res = await fetch(API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ note, patientId })
             });
 
-            if (!response.ok) {
-                const text = await response.text();
-                throw new Error(`API error ${response.status}: ${text}`);
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error("API error " + res.status + ": " + text);
             }
 
-            const data = await response.json();
-            renderSummary(data);
-        } catch (err) {
-            console.error(err);
-            errorEl.style.display = "block";
-            errorEl.textContent = "Failed to call backend API: " + err.message;
-            output.innerHTML = '<p class="empty-state">Could not generate summary. Please try again or check the Function.</p>';
+            const data = await res.json();
+
+            const general = data.general || "";
+            const assessment = data.assessment || "";
+            const plan = data.plan || "";
+
+            out.innerHTML = `
+                <div class="output-block">
+                    <h3>General</h3>
+                    <p>${escapeHtml(general || "No general text.")}</p>
+                </div>
+                <div class="output-block">
+                    <h3>Assessment</h3>
+                    <p>${escapeHtml(assessment || "No assessment text.")}</p>
+                </div>
+                <div class="output-block">
+                    <h3>Plan</h3>
+                    <p>${escapeHtml(plan || "No plan text.")}</p>
+                </div>
+            `;
+        } catch (e) {
+            console.error(e);
+            errEl.style.display = "block";
+            errEl.textContent = "Failed to call backend: " + e.message;
+            out.innerHTML = '<p class="empty">Could not generate summary.</p>';
         } finally {
             btn.disabled = false;
-            spinner.style.display = 'none';
-            btnText.textContent = 'Generate summary';
+            btn.textContent = "Generate summary";
         }
-    }
-
-    function renderSummary(data) {
-        const output = document.getElementById('summaryOutput');
-
-        let general = "";
-        if (data.general) {
-            general = data.general;
-        } else if (data.stats) {
-            const w = data.stats.words ?? "?";
-            const c = data.stats.characters ?? "?";
-            general = `Approx. length: ${w} words (${c} characters).`;
-        }
-
-        const assessment = data.assessment || "Prototype assessment based on simple logic in the Azure Function.";
-        const plan = data.plan || "In a future version, this will be generated by an LLM in a secure backend.";
-
-        output.innerHTML = `
-            <div class="summary-section">
-                <h3>General</h3>
-                <p>${escapeHtml(general)}</p>
-            </div>
-            <div class="summary-section">
-                <h3>Assessment</h3>
-                <p>${escapeHtml(assessment)}</p>
-            </div>
-            <div class="summary-section">
-                <h3>Plan</h3>
-                <p>${escapeHtml(plan)}</p>
-            </div>
-        `;
     }
 
     function escapeHtml(str) {
-        if (!str) return "";
         return str
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;");
     }
-
-    function clearForm() {
-        document.getElementById('patientId').value = "";
-        document.getElementById('note').value = "";
-        document.getElementById('summaryOutput').innerHTML =
-            '<p class="empty-state">No summary yet. Enter a clinical note or record a spoken note, then click <strong>Generate summary</strong>.</p>';
-        const errorEl = document.getElementById('apiError');
-        if (errorEl) {
-            errorEl.style.display = "none";
-            errorEl.textContent = "";
-        }
-        clearTranscript();
-    }
-
-    window.addEventListener('load', initSpeechRecognition);
 </script>
+</body>
+</html>
