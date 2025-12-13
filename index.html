@@ -8,47 +8,77 @@
   <!-- Azure Speech SDK -->
   <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
 
+  <!-- Avoid favicon 404 noise -->
+  <link rel="icon" href="data:," />
+
   <style>
     :root{
       --bg:#071023; --panel:#0b1733; --panel2:#0a142e; --text:#e8eefc; --muted:#9fb2d6;
       --border:rgba(255,255,255,.10); --accent:#7aa6ff; --good:#3ddc97; --warn:#ffd166; --bad:#ff5c7a;
       --btn:#12244a;
+      --shadow:0 18px 60px rgba(0,0,0,.28);
+      --radius:16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     }
     *{box-sizing:border-box}
     body{
-      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background:radial-gradient(1200px 700px at 20% -10%, #1a3a7a 0%, rgba(26,58,122,0) 60%),
-                 radial-gradient(1100px 700px at 80% 0%, #3b145f 0%, rgba(59,20,95,0) 55%),
-                 var(--bg);
+      margin:0; font-family:var(--sans);
+      background:
+        radial-gradient(1200px 700px at 20% -10%, rgba(26,58,122,.40) 0%, rgba(26,58,122,0) 60%),
+        radial-gradient(1100px 700px at 80% 0%, rgba(59,20,95,.35) 0%, rgba(59,20,95,0) 55%),
+        var(--bg);
       color:var(--text);
     }
-    .wrap{max-width:1100px; margin:38px auto; padding:0 18px}
+    .wrap{max-width:1120px; margin:34px auto; padding:0 18px}
     .header{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
     h1{font-size:28px; margin:0}
     .pill{font-size:12px; color:#dbe7ff; background:rgba(122,166,255,.16); border:1px solid var(--border);
       padding:6px 10px; border-radius:999px}
     .sub{margin:8px 0 0; color:var(--muted); line-height:1.35}
     .panel{
-      margin-top:18px; background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      border:1px solid var(--border); border-radius:16px; padding:16px;
-      box-shadow:0 18px 60px rgba(0,0,0,.25);
+      margin-top:18px;
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:16px;
+      box-shadow:var(--shadow);
     }
-    .grid3{display:grid; grid-template-columns: 240px 220px 1fr; gap:12px}
-    @media (max-width: 900px){ .grid3{grid-template-columns:1fr;}}
+    .grid{
+      display:grid; gap:12px;
+      grid-template-columns: 220px 220px 240px 1fr;
+    }
+    @media (max-width: 1050px){ .grid{grid-template-columns:1fr 1fr} }
+    @media (max-width: 700px){ .grid{grid-template-columns:1fr} }
+
     label{font-size:12px; color:var(--muted); display:block; margin-bottom:6px}
     select,input{
-      width:100%; background:rgba(0,0,0,.22); color:var(--text);
-      border:1px solid var(--border); border-radius:12px; padding:12px 12px;
+      width:100%;
+      background:rgba(0,0,0,.22);
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px 12px;
       outline:none;
     }
+    select:disabled,input:disabled{opacity:.55}
     .btnrow{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
     button{
-      background:var(--btn); color:var(--text); border:1px solid var(--border);
-      border-radius:12px; padding:10px 14px; cursor:pointer; font-weight:600;
-      display:flex; align-items:center; gap:8px;
+      background:var(--btn);
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px 14px;
+      cursor:pointer;
+      font-weight:600;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      transition:transform .05s ease, border-color .15s ease, background .15s ease;
     }
     button:hover{border-color:rgba(122,166,255,.55)}
-    button:disabled{opacity:.55; cursor:not-allowed}
+    button:active{transform:translateY(1px)}
+    button:disabled{opacity:.55; cursor:not-allowed; transform:none}
     .primary{background:rgba(122,166,255,.18); border-color:rgba(122,166,255,.45)}
     .danger{background:rgba(255,92,122,.15); border-color:rgba(255,92,122,.45)}
     .status{
@@ -58,18 +88,33 @@
     }
     .dot{width:10px; height:10px; border-radius:999px; background:rgba(255,255,255,.35)}
     .dot.good{background:var(--good)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)}
+    .help{margin-top:10px; color:var(--muted); font-size:12px}
+    .mono{font-family:var(--mono)}
+
     .twocol{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px}
-    @media (max-width: 900px){ .twocol{grid-template-columns:1fr;}}
-    .card{background:rgba(0,0,0,.18); border:1px solid var(--border); border-radius:16px; padding:14px}
+    @media (max-width: 900px){ .twocol{grid-template-columns:1fr;} }
+    .card{
+      background:rgba(0,0,0,.18);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:14px;
+    }
     .card h3{margin:0 0 10px; font-size:14px; color:#cfe0ff}
     textarea{
-      width:100%; min-height:260px; resize:vertical;
-      background:rgba(0,0,0,.22); color:var(--text);
-      border:1px solid var(--border); border-radius:12px; padding:12px;
-      outline:none; line-height:1.35;
+      width:100%;
+      min-height:280px;
+      resize:vertical;
+      background:rgba(0,0,0,.22);
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+      outline:none;
+      line-height:1.35;
+      font-family:var(--mono);
+      font-size:13px;
     }
-    .help{margin-top:10px; color:var(--muted); font-size:12px}
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+    .smallnote{margin-top:8px; font-size:12px; color:var(--muted)}
   </style>
 </head>
 
@@ -80,12 +125,12 @@
       <span class="pill">School project</span>
     </div>
     <p class="sub">
-      Demo app: record speech → transcribe with <b>Azure Speech</b> → send text to your <b>Azure Function</b> to summarize into a clinical note.
+      Demo: record speech → transcribe (Azure Speech) → summarize/report via Azure Function + Foundry model.
       <br><b>Do not use real patient data.</b>
     </p>
 
     <div class="panel">
-      <div class="grid3">
+      <div class="grid">
         <div>
           <label for="lang">Speech language</label>
           <select id="lang">
@@ -94,17 +139,49 @@
             <option value="ar-SA">Arabic — ar-SA</option>
           </select>
         </div>
+
         <div>
-          <label for="format">Note format</label>
+          <label for="outputMode">Output</label>
+          <select id="outputMode">
+            <option value="summary" selected>Sammanfattning (JSON/Text)</option>
+            <option value="report">Rapport (HTML-template)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="format">Note format (Summary)</label>
           <select id="format">
             <option>Bullet summary</option>
             <option>SOAP</option>
             <option>Narrative</option>
           </select>
         </div>
+
         <div>
           <label for="pid">Patient ID (demo)</label>
           <input id="pid" placeholder="Example: P-001 (optional)" />
+        </div>
+
+        <div>
+          <label for="reportTemplate">Rapportmall (Report)</label>
+          <select id="reportTemplate">
+            <option>Journalanteckning</option>
+            <option>Rondanteckning</option>
+            <option>Omvårdnadsrapport</option>
+            <option>Utskrivningsanteckning</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="reportLang">Rapportspråk (Report)</label>
+          <select id="reportLang">
+            <option value="sv" selected>Svenska</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+
+        <div style="grid-column: span 2;">
+          <div class="help mono" id="apiHint"></div>
         </div>
       </div>
 
@@ -112,10 +189,10 @@
         <button id="btnTest" class="primary">🧪 Test API</button>
         <button id="btnStart" class="primary">🎙️ Start recording</button>
         <button id="btnStop" disabled>⏹️ Stop</button>
-        <button id="btnSumm" class="primary">✨ Summarize</button>
+        <button id="btnGenerate" class="primary">✨ Generate</button>
         <button id="btnClear" class="danger">🧹 Clear</button>
         <button id="btnCopyT">📋 Copy transcript</button>
-        <button id="btnCopyS">📋 Copy summary</button>
+        <button id="btnCopyO">📋 Copy output</button>
       </div>
 
       <div class="status" id="status">
@@ -123,8 +200,9 @@
         <span id="statusText">Ready.</span>
       </div>
 
-      <div class="help">
-        <span class="mono" id="apiHint"></span>
+      <div class="smallnote">
+        Summary uses <span class="mono">POST /SummarizeNote</span>.<br/>
+        Report uses <span class="mono">POST /RenderReport</span> and opens a new tab for printing/saving as PDF.
       </div>
     </div>
 
@@ -132,190 +210,380 @@
       <div class="card">
         <h3>Transcript (what was said)</h3>
         <textarea id="transcript" placeholder="Press Start recording and speak..."></textarea>
+        <div class="smallnote">You can edit the transcript before generating.</div>
       </div>
 
       <div class="card">
-        <h3>Summary / Clinical note (from AI)</h3>
-        <textarea id="summary" class="mono" placeholder="Press Summarize to generate a clinical note..."></textarea>
-        <div class="help">This output is for demo only. Always review and edit.</div>
+        <h3>Output (Summary JSON/Text or Report status)</h3>
+        <textarea id="output" placeholder="Press Generate..."></textarea>
+        <div class="smallnote">For Report mode, a new tab opens with the HTML report.</div>
       </div>
     </div>
   </div>
 
   <script>
-    // === CONFIG ===
-    // Replace with YOUR function host (no trailing slash). Keep /api.
+    // ======================
+    // CONFIG
+    // ======================
+    // If later you connect Functions as SWA backend, use:
+    // const API_BASE = "/api";
     const API_BASE = "https://caresummary-api-feerbpb5b8gwf6cf.westeurope-01.azurewebsites.net/api";
 
-    // === UI ===
+    // ======================
+    // DOM
+    // ======================
     const el = (id) => document.getElementById(id);
+
     const lang = el("lang");
+    const outputMode = el("outputMode");
     const format = el("format");
     const pid = el("pid");
+    const reportTemplate = el("reportTemplate");
+    const reportLang = el("reportLang");
+
     const transcript = el("transcript");
-    const summary = el("summary");
+    const output = el("output");
 
     const btnTest = el("btnTest");
     const btnStart = el("btnStart");
     const btnStop = el("btnStop");
-    const btnSumm = el("btnSumm");
+    const btnGenerate = el("btnGenerate");
     const btnClear = el("btnClear");
     const btnCopyT = el("btnCopyT");
-    const btnCopyS = el("btnCopyS");
+    const btnCopyO = el("btnCopyO");
 
     const dot = el("dot");
     const statusText = el("statusText");
-    el("apiHint").textContent = `API_BASE = ${API_BASE} (token via /speechToken)`;
+    el("apiHint").textContent = `API_BASE = ${API_BASE}`;
 
+    // ======================
+    // STATUS
+    // ======================
     function setStatus(message, level = "neutral") {
       statusText.textContent = message;
       dot.className = "dot" + (level === "good" ? " good" : level === "warn" ? " warn" : level === "bad" ? " bad" : "");
+      console.log("[STATUS]", level, message);
     }
 
-    // === SPEECH ===
+    // ======================
+    // LOCAL STORAGE
+    // ======================
+    const LS = {
+      transcript: "caresummary.transcript",
+      output: "caresummary.output",
+      lang: "caresummary.lang",
+      mode: "caresummary.mode",
+      format: "caresummary.format",
+      pid: "caresummary.pid",
+      rtpl: "caresummary.reportTemplate",
+      rlang: "caresummary.reportLang",
+    };
+
+    function loadSaved() {
+      transcript.value = localStorage.getItem(LS.transcript) || "";
+      output.value = localStorage.getItem(LS.output) || "";
+      lang.value = localStorage.getItem(LS.lang) || lang.value;
+      outputMode.value = localStorage.getItem(LS.mode) || outputMode.value;
+      format.value = localStorage.getItem(LS.format) || format.value;
+      pid.value = localStorage.getItem(LS.pid) || "";
+      reportTemplate.value = localStorage.getItem(LS.rtpl) || reportTemplate.value;
+      reportLang.value = localStorage.getItem(LS.rlang) || reportLang.value;
+      applyModeUI();
+    }
+
+    function saveAll() {
+      localStorage.setItem(LS.transcript, transcript.value || "");
+      localStorage.setItem(LS.output, output.value || "");
+      localStorage.setItem(LS.lang, lang.value);
+      localStorage.setItem(LS.mode, outputMode.value);
+      localStorage.setItem(LS.format, format.value);
+      localStorage.setItem(LS.pid, pid.value || "");
+      localStorage.setItem(LS.rtpl, reportTemplate.value);
+      localStorage.setItem(LS.rlang, reportLang.value);
+    }
+
+    // ======================
+    // MODE UI
+    // ======================
+    function applyModeUI() {
+      const isSummary = outputMode.value === "summary";
+      format.disabled = !isSummary;
+      reportTemplate.disabled = isSummary;
+      reportLang.disabled = isSummary;
+    }
+
+    // ======================
+    // API helpers
+    // ======================
+    async function apiGet(path) {
+      const r = await fetch(`${API_BASE}${path}`, { method:"GET", cache:"no-store" });
+      const t = await r.text();
+      if (!r.ok) throw new Error(`${path} failed (${r.status}): ${t}`);
+      try { return JSON.parse(t); } catch { return t; }
+    }
+
+    async function apiPost(path, bodyObj) {
+      const r = await fetch(`${API_BASE}${path}`, {
+        method:"POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify(bodyObj),
+        cache:"no-store"
+      });
+      const t = await r.text();
+      if (!r.ok) throw new Error(`${path} failed (${r.status}): ${t}`);
+      try { return JSON.parse(t); } catch { return t; }
+    }
+
+    async function apiPostText(path, bodyObj) {
+      const r = await fetch(`${API_BASE}${path}`, {
+        method:"POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify(bodyObj),
+        cache:"no-store"
+      });
+      const t = await r.text();
+      if (!r.ok) throw new Error(`${path} failed (${r.status}): ${t}`);
+      return t;
+    }
+
+    // ======================
+    // Speech recognition
+    // ======================
     let recognizer = null;
     let isRecording = false;
 
     async function getSpeechToken() {
-      const r = await fetch(`${API_BASE}/speechToken`);
-      if (!r.ok) throw new Error(`speechToken failed (${r.status})`);
-      return await r.json(); // { token, region }
+      // expects { token, region }
+      return await apiGet("/speechToken");
     }
 
     async function startRecording() {
       if (isRecording) return;
+      if (!window.SpeechSDK) {
+        setStatus("Speech SDK not loaded. Refresh the page.", "bad");
+        return;
+      }
 
       setStatus("Requesting Speech token…", "warn");
-      const { token, region } = await getSpeechToken();
-
-      const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
-      speechConfig.speechRecognitionLanguage = lang.value;
-
-      const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-      recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-
-      recognizer.recognized = (s, e) => {
-        if (e.result && e.result.text) {
-          transcript.value += (transcript.value ? "\n" : "") + e.result.text;
-        }
-      };
-
-      recognizer.canceled = (s, e) => {
-        setStatus(`Speech canceled: ${e.errorDetails || "Unknown error"}`, "bad");
-        stopRecording().catch(()=>{});
-      };
-
-      recognizer.sessionStopped = () => {
-        stopRecording().catch(()=>{});
-      };
-
       btnStart.disabled = true;
-      btnStop.disabled = false;
-      isRecording = true;
+      btnStop.disabled = true;
 
-      setStatus("Recording… speak now.", "good");
-      recognizer.startContinuousRecognitionAsync();
+      try {
+        const { token, region } = await getSpeechToken();
+
+        const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
+        speechConfig.speechRecognitionLanguage = lang.value;
+
+        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+        recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+
+        recognizer.recognized = (s, e) => {
+          if (e.result && e.result.text) {
+            transcript.value += (transcript.value ? "\n" : "") + e.result.text;
+            saveAll();
+          }
+        };
+
+        recognizer.canceled = (s, e) => {
+          setStatus(`Speech canceled: ${e.errorDetails || "Unknown error"}`, "bad");
+          stopRecording().catch(()=>{});
+        };
+
+        recognizer.sessionStopped = () => {
+          stopRecording().catch(()=>{});
+        };
+
+        isRecording = true;
+        btnStop.disabled = false;
+        setStatus("Recording… speak now.", "good");
+        recognizer.startContinuousRecognitionAsync();
+      } catch (err) {
+        console.error(err);
+        setStatus(err.message || String(err), "bad");
+        btnStart.disabled = false;
+        btnStop.disabled = true;
+        isRecording = false;
+        recognizer = null;
+      }
     }
 
     async function stopRecording() {
+      if (!isRecording) return;
+      isRecording = false;
+
+      btnStop.disabled = true;
+      setStatus("Stopping…", "warn");
+
       if (!recognizer) {
-        isRecording = false;
         btnStart.disabled = false;
-        btnStop.disabled = true;
+        setStatus("Stopped.", "good");
         return;
       }
-      setStatus("Stopping…", "warn");
 
       await new Promise((resolve) => {
         recognizer.stopContinuousRecognitionAsync(() => resolve(), () => resolve());
       });
 
-      recognizer.close();
+      try { recognizer.close(); } catch {}
       recognizer = null;
-      isRecording = false;
 
       btnStart.disabled = false;
-      btnStop.disabled = true;
-      setStatus("Stopped.", "neutral");
+      setStatus("Stopped.", "good");
     }
 
-    // === SUMMARIZE ===
-    async function summarizeNow() {
+    // ======================
+    // Generate (Summary or Report)
+    // ======================
+    async function generate() {
       const note = transcript.value.trim();
       if (!note) {
-        setStatus("Nothing to summarize. Record or type text in Transcript.", "warn");
+        setStatus("Nothing to process. Record or paste transcript first.", "warn");
         return;
       }
 
-      setStatus("Summarizing…", "warn");
-      summary.value = "";
+      saveAll();
 
-      const body = {
-        note,
-        format: format.value,
-        patientId: pid.value.trim()
-      };
+      const mode = outputMode.value;
+      const patientId = (pid.value || "").trim();
 
-      const r = await fetch(`${API_BASE}/SummarizeNote`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
+      // ---- SUMMARY mode ----
+      if (mode === "summary") {
+        setStatus("Summarizing…", "warn");
+        btnGenerate.disabled = true;
 
-      const txt = await r.text();
-      if (!r.ok) {
-        setStatus(`Summarize failed. Check Function logs. (${r.status})`, "bad");
-        summary.value = txt;
+        try {
+          const res = await apiPost("/SummarizeNote", {
+            note,
+            format: format.value,
+            patientId
+          });
+
+          output.value = (typeof res === "string") ? res : JSON.stringify(res, null, 2);
+          saveAll();
+          setStatus("Summary generated.", "good");
+        } catch (err) {
+          console.error(err);
+          output.value = String(err.message || err);
+          saveAll();
+          setStatus("Summarize failed. Check Function logs.", "bad");
+        } finally {
+          btnGenerate.disabled = false;
+        }
         return;
       }
 
-      // Show pretty JSON if possible
+      // ---- REPORT mode ----
+      setStatus("Generating report…", "warn");
+      btnGenerate.disabled = true;
+
       try {
-        const obj = JSON.parse(txt);
-        summary.value = JSON.stringify(obj, null, 2);
-      } catch {
-        summary.value = txt;
-      }
+        const html = await apiPostText("/RenderReport", {
+          transcript: note,
+          patientId,
+          template: reportTemplate.value,
+          language: reportLang.value
+        });
 
-      setStatus("Summary generated.", "good");
+        // open a new tab with the HTML
+        const w = window.open("", "_blank");
+        if (!w) {
+          output.value = "Popup blocked. Allow popups and try again.";
+          setStatus("Popup blocked.", "bad");
+          return;
+        }
+        w.document.open();
+        w.document.write(html);
+        w.document.close();
+
+        output.value = "✅ Report opened in a new tab. Use Print → Save as PDF.";
+        saveAll();
+        setStatus("Report generated.", "good");
+      } catch (err) {
+        console.error(err);
+        output.value = String(err.message || err);
+        saveAll();
+        setStatus("Report failed. Check Function logs.", "bad");
+      } finally {
+        btnGenerate.disabled = false;
+      }
     }
 
-    // === UTIL ===
+    // ======================
+    // Utilities
+    // ======================
     async function copyText(value) {
-      await navigator.clipboard.writeText(value);
+      await navigator.clipboard.writeText(value || "");
       setStatus("Copied to clipboard.", "good");
-      setTimeout(()=>setStatus("Ready.", "neutral"), 900);
+      setTimeout(() => setStatus("Ready.", "neutral"), 800);
     }
 
     function clearAll() {
+      if (isRecording) stopRecording().catch(()=>{});
       transcript.value = "";
-      summary.value = "";
+      output.value = "";
       pid.value = "";
-      setStatus("Cleared.", "neutral");
+      saveAll();
+      setStatus("Cleared.", "good");
     }
 
     async function testApi() {
       setStatus("Testing API…", "warn");
       try {
-        const t = await getSpeechToken();
-        setStatus(`OK. speechToken region=${t.region}`, "good");
-      } catch (e) {
-        setStatus(`Test failed: ${e.message}`, "bad");
+        await apiGet("/speechToken");
+        setStatus("OK: /speechToken reachable.", "good");
+
+        // Optional: quick test based on mode
+        if (outputMode.value === "summary") {
+          const demo = await apiPost("/SummarizeNote", {
+            note: "Patient reports headache for 3 days. No fever. Pain 6/10.",
+            format: format.value,
+            patientId: "P-TEST"
+          });
+          output.value = typeof demo === "string" ? demo : JSON.stringify(demo, null, 2);
+          saveAll();
+          setStatus("OK: SummarizeNote responded.", "good");
+        } else {
+          const html = await apiPostText("/RenderReport", {
+            transcript: "Patienten beskriver huvudvärk i tre dagar. Ej feber. Smärta 6/10.",
+            patientId: "P-TEST",
+            template: reportTemplate.value,
+            language: reportLang.value
+          });
+          output.value = "✅ RenderReport responded (HTML). Click Generate to open the report tab.";
+          saveAll();
+          setStatus("OK: RenderReport responded.", "good");
+        }
+
+      } catch (err) {
+        console.error(err);
+        output.value = String(err.message || err);
+        saveAll();
+        setStatus("API test failed.", "bad");
       }
     }
 
-    // === EVENTS ===
-    btnTest.onclick = () => testApi();
-    btnStart.onclick = () => startRecording().catch(e => setStatus(e.message, "bad"));
-    btnStop.onclick = () => stopRecording().catch(e => setStatus(e.message, "bad"));
-    btnSumm.onclick = () => summarizeNow().catch(e => setStatus(e.message, "bad"));
-    btnClear.onclick = () => clearAll();
-    btnCopyT.onclick = () => copyText(transcript.value || "");
-    btnCopyS.onclick = () => copyText(summary.value || "");
+    // ======================
+    // Events
+    // ======================
+    lang.addEventListener("change", saveAll);
+    outputMode.addEventListener("change", () => { applyModeUI(); saveAll(); });
+    format.addEventListener("change", saveAll);
+    pid.addEventListener("input", saveAll);
+    reportTemplate.addEventListener("change", saveAll);
+    reportLang.addEventListener("change", saveAll);
+    transcript.addEventListener("input", saveAll);
 
-    window.addEventListener("beforeunload", () => {
-      try { recognizer && recognizer.close(); } catch {}
-    });
+    btnTest.onclick = () => testApi();
+    btnStart.onclick = () => startRecording().catch(e => setStatus(String(e.message||e), "bad"));
+    btnStop.onclick = () => stopRecording().catch(e => setStatus(String(e.message||e), "bad"));
+    btnGenerate.onclick = () => generate().catch(e => setStatus(String(e.message||e), "bad"));
+    btnClear.onclick = () => clearAll();
+    btnCopyT.onclick = () => copyText(transcript.value);
+    btnCopyO.onclick = () => copyText(output.value);
+
+    // Init
+    loadSaved();
+    setStatus("Ready.", "neutral");
   </script>
 </body>
 </html>
