@@ -1,648 +1,320 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>CareSummary (Demo)</title>
 
-  <!-- Avoid favicon 404 noise -->
-  <link rel="icon" href="data:,">
+  <!-- Azure Speech SDK -->
+  <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
 
   <style>
     :root{
-      --bg0:#050a18;
-      --bg1:#0b1638;
-      --card: rgba(255,255,255,0.06);
-      --card2: rgba(255,255,255,0.08);
-      --border: rgba(255,255,255,0.10);
-      --text: rgba(255,255,255,0.92);
-      --muted: rgba(255,255,255,0.65);
-      --muted2: rgba(255,255,255,0.45);
-      --ok:#3ddc97;
-      --warn:#ffcc66;
-      --bad:#ff5c7a;
-      --btn:#2b6cff;
-      --btn2:#21304f;
-      --shadow: 0 20px 60px rgba(0,0,0,0.50);
-      --radius: 18px;
-      --radius2: 14px;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --bg:#071023; --panel:#0b1733; --panel2:#0a142e; --text:#e8eefc; --muted:#9fb2d6;
+      --border:rgba(255,255,255,.10); --accent:#7aa6ff; --good:#3ddc97; --warn:#ffd166; --bad:#ff5c7a;
+      --btn:#12244a;
     }
-
-    *{ box-sizing:border-box; }
+    *{box-sizing:border-box}
     body{
-      margin:0;
-      font-family: var(--sans);
-      color: var(--text);
-      background:
-        radial-gradient(1200px 600px at 20% 10%, rgba(43,108,255,0.25), transparent 60%),
-        radial-gradient(900px 500px at 80% 20%, rgba(61,220,151,0.18), transparent 55%),
-        linear-gradient(180deg, var(--bg1), var(--bg0));
-      min-height: 100vh;
-      padding: 28px 18px 44px;
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:radial-gradient(1200px 700px at 20% -10%, #1a3a7a 0%, rgba(26,58,122,0) 60%),
+                 radial-gradient(1100px 700px at 80% 0%, #3b145f 0%, rgba(59,20,95,0) 55%),
+                 var(--bg);
+      color:var(--text);
     }
-
-    .wrap{
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    header{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:18px;
-      margin-bottom: 14px;
-    }
-
-    h1{
-      margin:0 0 6px 0;
-      font-size: 32px;
-      letter-spacing: 0.2px;
-    }
-
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-size: 12px;
-      white-space: nowrap;
-    }
-
-    .sub{
-      color: var(--muted);
-      line-height: 1.35;
-      font-size: 14px;
-      margin-top: 2px;
-      max-width: 720px;
-    }
-
-    .warnline{
-      color: var(--muted);
-      font-size: 14px;
-      margin-top: 6px;
-    }
-    .warnline b{ color: var(--warn); }
-
-    .card{
-      background: var(--card);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      border-radius: var(--radius);
-      padding: 16px;
-      margin-top: 14px;
-    }
-
-    .row{
-      display:grid;
-      grid-template-columns: 260px 220px 1fr;
-      gap: 12px;
-    }
-
-    label{
-      display:block;
-      font-size: 12px;
-      color: var(--muted);
-      margin: 2px 0 6px;
-    }
-
-    select,input{
-      width: 100%;
-      padding: 12px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(6,10,22,0.55);
-      color: var(--text);
-      outline: none;
-    }
-
-    select:focus,input:focus{
-      border-color: rgba(43,108,255,0.7);
-      box-shadow: 0 0 0 3px rgba(43,108,255,0.15);
-    }
-
-    .btnrow{
-      display:flex;
-      flex-wrap:wrap;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    button{
-      border: 1px solid rgba(255,255,255,0.14);
-      background: var(--btn2);
-      color: var(--text);
-      padding: 10px 14px;
-      border-radius: 14px;
-      cursor:pointer;
-      font-weight: 600;
-      letter-spacing: 0.2px;
-      transition: transform 0.06s ease, background 0.12s ease, border-color 0.12s ease;
-      user-select:none;
-    }
-    button:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,0.25); }
-    button:active{ transform: translateY(0px); }
-    button:disabled{
-      opacity: 0.5;
-      cursor:not-allowed;
-      transform:none;
-    }
-
-    .primary{ background: rgba(43,108,255,0.22); border-color: rgba(43,108,255,0.5); }
-    .good{ background: rgba(61,220,151,0.14); border-color: rgba(61,220,151,0.45); }
-    .danger{ background: rgba(255,92,122,0.12); border-color: rgba(255,92,122,0.45); }
-    .ghost{ background: rgba(255,255,255,0.06); }
-
-    .status{
-      margin-top: 12px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(0,0,0,0.15);
-      display:flex;
-      gap: 10px;
-      align-items:center;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .dot{
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.25);
-      box-shadow: 0 0 0 3px rgba(255,255,255,0.06);
-      flex: 0 0 auto;
-    }
-    .dot.ok{ background: var(--ok); box-shadow: 0 0 0 3px rgba(61,220,151,0.14); }
-    .dot.warn{ background: var(--warn); box-shadow: 0 0 0 3px rgba(255,204,102,0.14); }
-    .dot.bad{ background: var(--bad); box-shadow: 0 0 0 3px rgba(255,92,122,0.14); }
-
-    .hint{
-      color: var(--muted2);
-      font-size: 12px;
-      margin-top: 8px;
-    }
-    .hint code{
-      font-family: var(--mono);
-      color: rgba(255,255,255,0.78);
-      background: rgba(255,255,255,0.07);
-      padding: 2px 6px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.10);
-    }
-
-    .grid2{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-top: 14px;
-    }
-
+    .wrap{max-width:1100px; margin:38px auto; padding:0 18px}
+    .header{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+    h1{font-size:28px; margin:0}
+    .pill{font-size:12px; color:#dbe7ff; background:rgba(122,166,255,.16); border:1px solid var(--border);
+      padding:6px 10px; border-radius:999px}
+    .sub{margin:8px 0 0; color:var(--muted); line-height:1.35}
     .panel{
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px;
-      min-height: 280px;
+      margin-top:18px; background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid var(--border); border-radius:16px; padding:16px;
+      box-shadow:0 18px 60px rgba(0,0,0,.25);
     }
-
-    .panel h3{
-      margin: 0 0 10px 0;
-      font-size: 14px;
-      color: rgba(255,255,255,0.84);
-      letter-spacing: 0.2px;
-    }
-
-    textarea{
-      width: 100%;
-      height: 220px;
-      resize: vertical;
-      border-radius: var(--radius2);
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(6,10,22,0.55);
-      color: var(--text);
-      padding: 12px;
+    .grid3{display:grid; grid-template-columns: 240px 220px 1fr; gap:12px}
+    @media (max-width: 900px){ .grid3{grid-template-columns:1fr;}}
+    label{font-size:12px; color:var(--muted); display:block; margin-bottom:6px}
+    select,input{
+      width:100%; background:rgba(0,0,0,.22); color:var(--text);
+      border:1px solid var(--border); border-radius:12px; padding:12px 12px;
       outline:none;
-      line-height: 1.4;
     }
-
-    pre{
-      margin: 0;
-      width: 100%;
-      height: 220px;
-      overflow:auto;
-      border-radius: var(--radius2);
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(6,10,22,0.55);
-      color: rgba(255,255,255,0.90);
-      padding: 12px;
-      font-family: var(--mono);
-      font-size: 12.5px;
-      line-height: 1.45;
-      white-space: pre-wrap;
-      word-break: break-word;
+    .btnrow{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+    button{
+      background:var(--btn); color:var(--text); border:1px solid var(--border);
+      border-radius:12px; padding:10px 14px; cursor:pointer; font-weight:600;
+      display:flex; align-items:center; gap:8px;
     }
-
-    .foot{
-      margin-top: 10px;
-      color: var(--muted2);
-      font-size: 12px;
+    button:hover{border-color:rgba(122,166,255,.55)}
+    button:disabled{opacity:.55; cursor:not-allowed}
+    .primary{background:rgba(122,166,255,.18); border-color:rgba(122,166,255,.45)}
+    .danger{background:rgba(255,92,122,.15); border-color:rgba(255,92,122,.45)}
+    .status{
+      margin-top:12px; padding:10px 12px; border-radius:12px;
+      border:1px solid var(--border); background:rgba(0,0,0,.18); color:var(--muted);
+      display:flex; align-items:center; gap:10px;
     }
-
-    @media (max-width: 900px){
-      .row{ grid-template-columns: 1fr; }
-      .grid2{ grid-template-columns: 1fr; }
+    .dot{width:10px; height:10px; border-radius:999px; background:rgba(255,255,255,.35)}
+    .dot.good{background:var(--good)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)}
+    .twocol{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px}
+    @media (max-width: 900px){ .twocol{grid-template-columns:1fr;}}
+    .card{background:rgba(0,0,0,.18); border:1px solid var(--border); border-radius:16px; padding:14px}
+    .card h3{margin:0 0 10px; font-size:14px; color:#cfe0ff}
+    textarea{
+      width:100%; min-height:260px; resize:vertical;
+      background:rgba(0,0,0,.22); color:var(--text);
+      border:1px solid var(--border); border-radius:12px; padding:12px;
+      outline:none; line-height:1.35;
     }
+    .help{margin-top:10px; color:var(--muted); font-size:12px}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
   </style>
 </head>
 
 <body>
   <div class="wrap">
-    <header>
-      <div>
-        <h1>CareSummary (Demo) <span class="badge">School project</span></h1>
-        <div class="sub">
-          Record speech → transcribe with <b>Azure Speech</b> → send text to your <b>Azure Function</b> to summarize into a clinical note.
-        </div>
-        <div class="warnline"><b>Do not use real patient data.</b></div>
-      </div>
-      <div class="badge" id="sdkBadge">Speech SDK: loading…</div>
-    </header>
+    <div class="header">
+      <h1>CareSummary (Demo)</h1>
+      <span class="pill">School project</span>
+    </div>
+    <p class="sub">
+      Demo app: record speech → transcribe with <b>Azure Speech</b> → send text to your <b>Azure Function</b> to summarize into a clinical note.
+      <br><b>Do not use real patient data.</b>
+    </p>
 
-    <div class="card">
-      <div class="row">
+    <div class="panel">
+      <div class="grid3">
         <div>
           <label for="lang">Speech language</label>
           <select id="lang">
             <option value="sv-SE">Swedish — sv-SE</option>
             <option value="en-US" selected>English (US) — en-US</option>
-            <option value="en-GB">English (UK) — en-GB</option>
             <option value="ar-SA">Arabic — ar-SA</option>
-            <option value="de-DE">German — de-DE</option>
-            <option value="fr-FR">French — fr-FR</option>
           </select>
         </div>
-
         <div>
           <label for="format">Note format</label>
           <select id="format">
-            <option value="Bullet summary" selected>Bullet summary</option>
-            <option value="SOAP">SOAP</option>
-            <option value="Narrative">Narrative</option>
-            <option value="Discharge summary">Discharge summary</option>
+            <option>Bullet summary</option>
+            <option>SOAP</option>
+            <option>Narrative</option>
           </select>
         </div>
-
         <div>
-          <label for="patientId">Patient ID (demo)</label>
-          <input id="patientId" placeholder="Example: P-001 (optional)" />
+          <label for="pid">Patient ID (demo)</label>
+          <input id="pid" placeholder="Example: P-001 (optional)" />
         </div>
       </div>
 
       <div class="btnrow">
-        <button class="ghost" id="btnTest">Test API</button>
-        <button class="primary" id="btnStart">🎙️ Start recording</button>
-        <button id="btnStop" disabled>⏹ Stop</button>
-        <button class="good" id="btnSummarize">✨ Summarize</button>
-        <button class="danger" id="btnClear">🧹 Clear</button>
-        <button class="ghost" id="btnCopyTranscript">Copy transcript</button>
-        <button class="ghost" id="btnCopySummary">Copy summary</button>
+        <button id="btnTest" class="primary">🧪 Test API</button>
+        <button id="btnStart" class="primary">🎙️ Start recording</button>
+        <button id="btnStop" disabled>⏹️ Stop</button>
+        <button id="btnSumm" class="primary">✨ Summarize</button>
+        <button id="btnClear" class="danger">🧹 Clear</button>
+        <button id="btnCopyT">📋 Copy transcript</button>
+        <button id="btnCopyS">📋 Copy summary</button>
       </div>
 
-      <div class="status" id="statusBar">
-        <div class="dot" id="statusDot"></div>
-        <div id="statusText">Ready.</div>
+      <div class="status" id="status">
+        <span class="dot" id="dot"></span>
+        <span id="statusText">Ready.</span>
       </div>
 
-      <div class="hint">
-        API_BASE is set at the top of the script. Token is fetched from <code>/speechToken</code>. Summary is posted to <code>/SummarizeNote</code>.
+      <div class="help">
+        <span class="mono" id="apiHint"></span>
       </div>
     </div>
 
-    <div class="grid2">
-      <div class="panel">
+    <div class="twocol">
+      <div class="card">
         <h3>Transcript (what was said)</h3>
-        <textarea id="transcript" placeholder="Press Start recording… or type/paste text here."></textarea>
-        <div class="foot">Tip: You can edit the transcript before summarizing.</div>
+        <textarea id="transcript" placeholder="Press Start recording and speak..."></textarea>
       </div>
 
-      <div class="panel">
+      <div class="card">
         <h3>Summary / Clinical note (from AI)</h3>
-        <pre id="summary">Press Summarize to generate a clinical note…</pre>
-        <div class="foot">Demo output only. Always review and edit.</div>
+        <textarea id="summary" class="mono" placeholder="Press Summarize to generate a clinical note..."></textarea>
+        <div class="help">This output is for demo only. Always review and edit.</div>
       </div>
     </div>
   </div>
 
-  <!-- Speech SDK (browser bundle) -->
-  <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@1.47.0/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle-min.js"></script>
-
   <script>
-    /*******************************************************************
-     * CONFIG — CHANGE THIS to your Function App base (no trailing slash)
-     *******************************************************************/
+    // === CONFIG ===
+    // Replace with YOUR function host (no trailing slash). Keep /api.
     const API_BASE = "https://caresummary-api-feerbpb5b8gwf6cf.westeurope-01.azurewebsites.net/api";
 
-    /*******************************************************************
-     * UI helpers
-     *******************************************************************/
+    // === UI ===
     const el = (id) => document.getElementById(id);
-
-    const sdkBadge = el("sdkBadge");
-    const statusDot = el("statusDot");
-    const statusText = el("statusText");
-
-    const langSel = el("lang");
-    const formatSel = el("format");
-    const patientIdInp = el("patientId");
+    const lang = el("lang");
+    const format = el("format");
+    const pid = el("pid");
+    const transcript = el("transcript");
+    const summary = el("summary");
 
     const btnTest = el("btnTest");
     const btnStart = el("btnStart");
     const btnStop = el("btnStop");
-    const btnSummarize = el("btnSummarize");
+    const btnSumm = el("btnSumm");
     const btnClear = el("btnClear");
-    const btnCopyTranscript = el("btnCopyTranscript");
-    const btnCopySummary = el("btnCopySummary");
+    const btnCopyT = el("btnCopyT");
+    const btnCopyS = el("btnCopyS");
 
-    const transcriptTA = el("transcript");
-    const summaryPre = el("summary");
+    const dot = el("dot");
+    const statusText = el("statusText");
+    el("apiHint").textContent = `API_BASE = ${API_BASE} (token via /speechToken)`;
 
-    function setStatus(kind, msg){
-      statusDot.className = "dot" + (kind ? (" " + kind) : "");
-      statusText.textContent = msg;
+    function setStatus(message, level = "neutral") {
+      statusText.textContent = message;
+      dot.className = "dot" + (level === "good" ? " good" : level === "warn" ? " warn" : level === "bad" ? " bad" : "");
     }
 
-    function safeJsonParse(text){
-      try { return JSON.parse(text); } catch { return null; }
+    // === SPEECH ===
+    let recognizer = null;
+    let isRecording = false;
+
+    async function getSpeechToken() {
+      const r = await fetch(`${API_BASE}/speechToken`);
+      if (!r.ok) throw new Error(`speechToken failed (${r.status})`);
+      return await r.json(); // { token, region }
     }
 
-    async function copyToClipboard(text){
-      await navigator.clipboard.writeText(text);
-    }
+    async function startRecording() {
+      if (isRecording) return;
 
-    /*******************************************************************
-     * Speech state
-     *******************************************************************/
-    const state = {
-      recognizer: null,
-      recording: false,
-      lastPartial: ""
-    };
+      setStatus("Requesting Speech token…", "warn");
+      const { token, region } = await getSpeechToken();
 
-    function sdkReady(){
-      return !!(window.SpeechSDK && window.SpeechSDK.SpeechRecognizer);
-    }
+      const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
+      speechConfig.speechRecognitionLanguage = lang.value;
 
-    function updateSdkBadge(){
-      if (sdkReady()){
-        sdkBadge.textContent = "Speech SDK: ready";
-        sdkBadge.style.color = "rgba(255,255,255,0.80)";
-      } else {
-        sdkBadge.textContent = "Speech SDK: not loaded";
-        sdkBadge.style.color = "rgba(255,92,122,0.95)";
-      }
-    }
-    updateSdkBadge();
+      const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+      recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
 
-    /*******************************************************************
-     * API calls
-     *******************************************************************/
-    async function getSpeechToken(){
-      const url = `${API_BASE}/speechToken`;
-      const res = await fetch(url, { method: "GET" });
-      const text = await res.text();
-      if (!res.ok) throw new Error(`speechToken failed (${res.status}): ${text}`);
-      const data = safeJsonParse(text);
-      if (!data?.token) throw new Error(`speechToken returned unexpected response: ${text}`);
-      return data; // { token, region }
-    }
+      recognizer.recognized = (s, e) => {
+        if (e.result && e.result.text) {
+          transcript.value += (transcript.value ? "\n" : "") + e.result.text;
+        }
+      };
 
-    async function callSummarizeNote(note, format, patientId){
-      const url = `${API_BASE}/SummarizeNote`;
-      const payload = { note, format, patientId };
+      recognizer.canceled = (s, e) => {
+        setStatus(`Speech canceled: ${e.errorDetails || "Unknown error"}`, "bad");
+        stopRecording().catch(()=>{});
+      };
 
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const text = await res.text();
-      if (!res.ok) {
-        throw new Error(`SummarizeNote failed (${res.status}): ${text}`);
-      }
-
-      // Your function returns JSON. If it returns text, we still show it.
-      const data = safeJsonParse(text);
-      return data ?? text;
-    }
-
-    /*******************************************************************
-     * Speech controls
-     *******************************************************************/
-    async function startRecording(){
-      if (!sdkReady()) {
-        setStatus("bad", "Speech SDK is not loaded. Check network/CDN and refresh.");
-        return;
-      }
-      if (state.recording) return;
-
-      setStatus("warn", "Getting Speech token…");
+      recognizer.sessionStopped = () => {
+        stopRecording().catch(()=>{});
+      };
 
       btnStart.disabled = true;
-      btnStop.disabled = true;
-      btnSummarize.disabled = true;
+      btnStop.disabled = false;
+      isRecording = true;
 
+      setStatus("Recording… speak now.", "good");
+      recognizer.startContinuousRecognitionAsync();
+    }
+
+    async function stopRecording() {
+      if (!recognizer) {
+        isRecording = false;
+        btnStart.disabled = false;
+        btnStop.disabled = true;
+        return;
+      }
+      setStatus("Stopping…", "warn");
+
+      await new Promise((resolve) => {
+        recognizer.stopContinuousRecognitionAsync(() => resolve(), () => resolve());
+      });
+
+      recognizer.close();
+      recognizer = null;
+      isRecording = false;
+
+      btnStart.disabled = false;
+      btnStop.disabled = true;
+      setStatus("Stopped.", "neutral");
+    }
+
+    // === SUMMARIZE ===
+    async function summarizeNow() {
+      const note = transcript.value.trim();
+      if (!note) {
+        setStatus("Nothing to summarize. Record or type text in Transcript.", "warn");
+        return;
+      }
+
+      setStatus("Summarizing…", "warn");
+      summary.value = "";
+
+      const body = {
+        note,
+        format: format.value,
+        patientId: pid.value.trim()
+      };
+
+      const r = await fetch(`${API_BASE}/SummarizeNote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      const txt = await r.text();
+      if (!r.ok) {
+        setStatus(`Summarize failed. Check Function logs. (${r.status})`, "bad");
+        summary.value = txt;
+        return;
+      }
+
+      // Show pretty JSON if possible
       try {
-        const { token, region } = await getSpeechToken();
-
-        const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
-        speechConfig.speechRecognitionLanguage = langSel.value;
-
-        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-        const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-
-        state.recognizer = recognizer;
-        state.recording = true;
-        state.lastPartial = "";
-
-        recognizer.recognizing = (_s, e) => {
-          // partial text (do not permanently append)
-          state.lastPartial = e?.result?.text || "";
-          setStatus("warn", state.lastPartial ? `Listening… ${state.lastPartial}` : "Listening…");
-        };
-
-        recognizer.recognized = (_s, e) => {
-          if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-            const text = (e.result.text || "").trim();
-            if (text) {
-              const current = transcriptTA.value.trim();
-              transcriptTA.value = current ? (current + "\n" + text) : text;
-            }
-          }
-        };
-
-        recognizer.canceled = (_s, e) => {
-          const details = (e?.errorDetails || "").trim();
-          setStatus("bad", details ? `Canceled: ${details}` : "Canceled.");
-          stopRecording();
-        };
-
-        recognizer.sessionStopped = () => {
-          // Called when service ends session
-          stopRecording();
-        };
-
-        recognizer.startContinuousRecognitionAsync(
-          () => {
-            btnStop.disabled = false;
-            btnSummarize.disabled = false;
-            setStatus("ok", "Recording started. Speak into your microphone…");
-          },
-          (err) => {
-            throw new Error("Could not start recognition: " + err);
-          }
-        );
-
-      } catch (err){
-        console.error(err);
-        setStatus("bad", err.message || String(err));
-        btnStart.disabled = false;
-        btnStop.disabled = true;
-        btnSummarize.disabled = false;
+        const obj = JSON.parse(txt);
+        summary.value = JSON.stringify(obj, null, 2);
+      } catch {
+        summary.value = txt;
       }
+
+      setStatus("Summary generated.", "good");
     }
 
-    function stopRecording(){
-      if (!state.recording) {
-        btnStart.disabled = false;
-        btnStop.disabled = true;
-        btnSummarize.disabled = false;
-        return;
-      }
-
-      btnStop.disabled = true;
-
-      const r = state.recognizer;
-      state.recording = false;
-      state.recognizer = null;
-      state.lastPartial = "";
-
-      if (!r) {
-        btnStart.disabled = false;
-        btnSummarize.disabled = false;
-        setStatus("ok", "Stopped.");
-        return;
-      }
-
-      r.stopContinuousRecognitionAsync(
-        () => {
-          try { r.close(); } catch {}
-          btnStart.disabled = false;
-          btnSummarize.disabled = false;
-          setStatus("ok", "Recording stopped.");
-        },
-        (err) => {
-          console.error(err);
-          try { r.close(); } catch {}
-          btnStart.disabled = false;
-          btnSummarize.disabled = false;
-          setStatus("warn", "Stopped (with warning).");
-        }
-      );
+    // === UTIL ===
+    async function copyText(value) {
+      await navigator.clipboard.writeText(value);
+      setStatus("Copied to clipboard.", "good");
+      setTimeout(()=>setStatus("Ready.", "neutral"), 900);
     }
 
-    /*******************************************************************
-     * Actions
-     *******************************************************************/
-    async function testApi(){
-      setStatus("warn", "Testing API…");
+    function clearAll() {
+      transcript.value = "";
+      summary.value = "";
+      pid.value = "";
+      setStatus("Cleared.", "neutral");
+    }
 
+    async function testApi() {
+      setStatus("Testing API…", "warn");
       try {
         const t = await getSpeechToken();
-        setStatus("ok", `OK: speechToken works (region: ${t.region || "?"}). Now try Summarize.`);
-      } catch (err){
-        console.error(err);
-        setStatus("bad", `Test failed: ${err.message || err}`);
+        setStatus(`OK. speechToken region=${t.region}`, "good");
+      } catch (e) {
+        setStatus(`Test failed: ${e.message}`, "bad");
       }
     }
 
-    async function summarize(){
-      const note = (transcriptTA.value || "").trim();
-      if (!note){
-        setStatus("warn", "Nothing to summarize. Record or paste text first.");
-        return;
-      }
+    // === EVENTS ===
+    btnTest.onclick = () => testApi();
+    btnStart.onclick = () => startRecording().catch(e => setStatus(e.message, "bad"));
+    btnStop.onclick = () => stopRecording().catch(e => setStatus(e.message, "bad"));
+    btnSumm.onclick = () => summarizeNow().catch(e => setStatus(e.message, "bad"));
+    btnClear.onclick = () => clearAll();
+    btnCopyT.onclick = () => copyText(transcript.value || "");
+    btnCopyS.onclick = () => copyText(summary.value || "");
 
-      setStatus("warn", "Summarizing…");
-      btnSummarize.disabled = true;
-
-      try {
-        const data = await callSummarizeNote(note, formatSel.value, (patientIdInp.value || "").trim());
-
-        // pretty display
-        if (typeof data === "string") {
-          summaryPre.textContent = data;
-        } else {
-          summaryPre.textContent = JSON.stringify(data, null, 2);
-        }
-
-        setStatus("ok", "Summary generated.");
-      } catch (err){
-        console.error(err);
-        summaryPre.textContent = "Summarize failed. Check Function route/name + logs.\n\n" + (err.message || String(err));
-        setStatus("bad", "Summarize failed. Open Azure Function logs for details.");
-      } finally {
-        btnSummarize.disabled = false;
-      }
-    }
-
-    function clearAll(){
-      stopRecording();
-      transcriptTA.value = "";
-      summaryPre.textContent = "Press Summarize to generate a clinical note…";
-      setStatus("", "Cleared.");
-    }
-
-    /*******************************************************************
-     * Wire up buttons
-     *******************************************************************/
-    btnTest.addEventListener("click", testApi);
-    btnStart.addEventListener("click", startRecording);
-    btnStop.addEventListener("click", stopRecording);
-    btnSummarize.addEventListener("click", summarize);
-    btnClear.addEventListener("click", clearAll);
-
-    btnCopyTranscript.addEventListener("click", async () => {
-      try{
-        await copyToClipboard(transcriptTA.value || "");
-        setStatus("ok", "Transcript copied.");
-      } catch (err){
-        setStatus("bad", "Copy failed (clipboard permission).");
-      }
-    });
-
-    btnCopySummary.addEventListener("click", async () => {
-      try{
-        await copyToClipboard(summaryPre.textContent || "");
-        setStatus("ok", "Summary copied.");
-      } catch (err){
-        setStatus("bad", "Copy failed (clipboard permission).");
-      }
-    });
-
-    // re-check Speech SDK after load
-    window.addEventListener("load", () => {
-      updateSdkBadge();
-      if (!sdkReady()){
-        setStatus("warn", "Speech SDK still not ready. If buttons don’t work, refresh once.");
-      }
+    window.addEventListener("beforeunload", () => {
+      try { recognizer && recognizer.close(); } catch {}
     });
   </script>
 </body>
