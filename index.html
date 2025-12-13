@@ -7,6 +7,7 @@
 
   <!-- Speech SDK for JavaScript (browser bundle) -->
   <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+
   <style>
     body { font-family: system-ui, Arial; margin: 24px; max-width: 900px; }
     button { padding: 10px 14px; margin-right: 8px; cursor: pointer; }
@@ -21,6 +22,7 @@
   <div class="row">
     <button id="btnStart">🎙️ Start</button>
     <button id="btnStop" disabled>🛑 Stop</button>
+    <button id="btnClear">🧹 Clear</button>
 
     <label>
       Language:
@@ -44,6 +46,7 @@
 
     const btnStart = document.getElementById("btnStart");
     const btnStop = document.getElementById("btnStop");
+    const btnClear = document.getElementById("btnClear");
     const transcriptEl = document.getElementById("transcript");
     const statusEl = document.getElementById("status");
     const langEl = document.getElementById("lang");
@@ -74,10 +77,6 @@
 
       const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
       recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-
-      recognizer.recognizing = (s, e) => {
-        // Optional: show partial text somewhere if you want
-      };
 
       recognizer.recognized = (s, e) => {
         if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech && e.result.text) {
@@ -116,6 +115,7 @@
       });
     }
 
+    // Buttons
     btnStart.addEventListener("click", () => startListening().catch(err => {
       console.error(err);
       setStatus("ERROR: " + err.message);
@@ -124,6 +124,13 @@
     }));
 
     btnStop.addEventListener("click", stopListening);
+
+    btnClear.addEventListener("click", () => {
+      // stop mic (recommended) then clear text
+      stopListening();
+      transcriptEl.value = "";
+      setStatus("Cleared.");
+    });
   </script>
 </body>
 </html>
