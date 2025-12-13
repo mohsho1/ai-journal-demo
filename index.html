@@ -3,536 +3,647 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CareSummary (Demo) – Voice to Clinical Note</title>
+  <title>CareSummary (Demo)</title>
+
+  <!-- Avoid favicon 404 noise -->
+  <link rel="icon" href="data:,">
+
   <style>
-    :root {
-      --bg: #0b1220;
-      --card: #111b2e;
-      --muted: #9fb0d0;
-      --text: #e8eefc;
-      --accent: #6ea8fe;
-      --danger: #ff6b6b;
-      --ok: #51cf66;
+    :root{
+      --bg0:#050a18;
+      --bg1:#0b1638;
+      --card: rgba(255,255,255,0.06);
+      --card2: rgba(255,255,255,0.08);
       --border: rgba(255,255,255,0.10);
-      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.65);
+      --muted2: rgba(255,255,255,0.45);
+      --ok:#3ddc97;
+      --warn:#ffcc66;
+      --bad:#ff5c7a;
+      --btn:#2b6cff;
+      --btn2:#21304f;
+      --shadow: 0 20px 60px rgba(0,0,0,0.50);
+      --radius: 18px;
+      --radius2: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      background: radial-gradient(1200px 600px at 20% 0%, #15284e 0%, var(--bg) 55%), var(--bg);
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: var(--sans);
       color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(43,108,255,0.25), transparent 60%),
+        radial-gradient(900px 500px at 80% 20%, rgba(61,220,151,0.18), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
       min-height: 100vh;
+      padding: 28px 18px 44px;
     }
-    header {
-      padding: 28px 18px 10px;
+
+    .wrap{
       max-width: 1100px;
       margin: 0 auto;
     }
-    h1 {
-      margin: 0;
-      font-size: 28px;
+
+    header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:18px;
+      margin-bottom: 14px;
+    }
+
+    h1{
+      margin:0 0 6px 0;
+      font-size: 32px;
       letter-spacing: 0.2px;
     }
-    .subtitle {
-      margin: 6px 0 0;
-      color: var(--muted);
-      line-height: 1.4;
-      font-size: 14px;
-      max-width: 900px;
-    }
-    .wrap {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 14px 18px 40px;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
-    .grid2 {
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 14px;
-    }
-    @media (max-width: 900px) {
-      .grid2 { grid-template-columns: 1fr; }
-    }
-    .card {
-      background: rgba(17,27,46,0.92);
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
       border: 1px solid var(--border);
-      border-radius: 16px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .sub{
+      color: var(--muted);
+      line-height: 1.35;
+      font-size: 14px;
+      margin-top: 2px;
+      max-width: 720px;
+    }
+
+    .warnline{
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 6px;
+    }
+    .warnline b{ color: var(--warn); }
+
+    .card{
+      background: var(--card);
+      border: 1px solid var(--border);
       box-shadow: var(--shadow);
+      border-radius: var(--radius);
       padding: 16px;
+      margin-top: 14px;
     }
-    .row {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 10px;
-      align-items: end;
+
+    .row{
+      display:grid;
+      grid-template-columns: 260px 220px 1fr;
+      gap: 12px;
     }
-    .field { grid-column: span 3; }
-    .field.wide { grid-column: span 6; }
-    .field.full { grid-column: span 12; }
-    label {
-      display: block;
+
+    label{
+      display:block;
       font-size: 12px;
       color: var(--muted);
-      margin-bottom: 6px;
+      margin: 2px 0 6px;
     }
-    input, select, textarea {
+
+    select,input{
       width: 100%;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 10px 10px;
+      padding: 12px 12px;
       border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(6,10,22,0.55);
+      color: var(--text);
       outline: none;
-      font-size: 14px;
     }
-    textarea {
-      min-height: 180px;
-      resize: vertical;
-      line-height: 1.45;
+
+    select:focus,input:focus{
+      border-color: rgba(43,108,255,0.7);
+      box-shadow: 0 0 0 3px rgba(43,108,255,0.15);
     }
-    .btnbar {
-      display: flex;
-      flex-wrap: wrap;
+
+    .btnrow{
+      display:flex;
+      flex-wrap:wrap;
       gap: 10px;
-      align-items: center;
-      margin-top: 10px;
+      margin-top: 12px;
     }
-    button {
-      appearance: none;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.06);
+
+    button{
+      border: 1px solid rgba(255,255,255,0.14);
+      background: var(--btn2);
       color: var(--text);
-      padding: 10px 12px;
-      border-radius: 12px;
-      cursor: pointer;
+      padding: 10px 14px;
+      border-radius: 14px;
+      cursor:pointer;
       font-weight: 600;
-      transition: transform 0.03s ease, background 0.15s ease, border-color 0.15s ease;
+      letter-spacing: 0.2px;
+      transition: transform 0.06s ease, background 0.12s ease, border-color 0.12s ease;
+      user-select:none;
     }
-    button:hover { background: rgba(255,255,255,0.09); }
-    button:active { transform: translateY(1px); }
-    button.primary {
-      background: rgba(110,168,254,0.18);
-      border-color: rgba(110,168,254,0.45);
+    button:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,0.25); }
+    button:active{ transform: translateY(0px); }
+    button:disabled{
+      opacity: 0.5;
+      cursor:not-allowed;
+      transform:none;
     }
-    button.danger {
-      background: rgba(255,107,107,0.12);
-      border-color: rgba(255,107,107,0.40);
-    }
-    button:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-    .status {
-      margin-top: 10px;
+
+    .primary{ background: rgba(43,108,255,0.22); border-color: rgba(43,108,255,0.5); }
+    .good{ background: rgba(61,220,151,0.14); border-color: rgba(61,220,151,0.45); }
+    .danger{ background: rgba(255,92,122,0.12); border-color: rgba(255,92,122,0.45); }
+    .ghost{ background: rgba(255,255,255,0.06); }
+
+    .status{
+      margin-top: 12px;
       padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.04);
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.15);
+      display:flex;
+      gap: 10px;
+      align-items:center;
       color: var(--muted);
       font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
     }
-    .dot {
-      width: 10px; height: 10px; border-radius: 999px;
-      background: rgba(255,255,255,0.20);
-      box-shadow: 0 0 0 4px rgba(255,255,255,0.05);
+    .dot{
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.25);
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.06);
       flex: 0 0 auto;
     }
-    .dot.ok { background: var(--ok); box-shadow: 0 0 0 4px rgba(81,207,102,0.12); }
-    .dot.bad { background: var(--danger); box-shadow: 0 0 0 4px rgba(255,107,107,0.12); }
-    .dot.live { background: var(--accent); box-shadow: 0 0 0 4px rgba(110,168,254,0.12); }
-    .small {
-      color: var(--muted);
+    .dot.ok{ background: var(--ok); box-shadow: 0 0 0 3px rgba(61,220,151,0.14); }
+    .dot.warn{ background: var(--warn); box-shadow: 0 0 0 3px rgba(255,204,102,0.14); }
+    .dot.bad{ background: var(--bad); box-shadow: 0 0 0 3px rgba(255,92,122,0.14); }
+
+    .hint{
+      color: var(--muted2);
       font-size: 12px;
       margin-top: 8px;
+    }
+    .hint code{
+      font-family: var(--mono);
+      color: rgba(255,255,255,0.78);
+      background: rgba(255,255,255,0.07);
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .panel{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      min-height: 280px;
+    }
+
+    .panel h3{
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: rgba(255,255,255,0.84);
+      letter-spacing: 0.2px;
+    }
+
+    textarea{
+      width: 100%;
+      height: 220px;
+      resize: vertical;
+      border-radius: var(--radius2);
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(6,10,22,0.55);
+      color: var(--text);
+      padding: 12px;
+      outline:none;
       line-height: 1.4;
     }
-    .pill {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background: rgba(110,168,254,0.12);
-      border: 1px solid rgba(110,168,254,0.28);
-      color: var(--text);
-      font-size: 12px;
-      font-weight: 600;
-      margin-left: 8px;
+
+    pre{
+      margin: 0;
+      width: 100%;
+      height: 220px;
+      overflow:auto;
+      border-radius: var(--radius2);
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(6,10,22,0.55);
+      color: rgba(255,255,255,0.90);
+      padding: 12px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
     }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+    .foot{
+      margin-top: 10px;
+      color: var(--muted2);
+      font-size: 12px;
+    }
+
+    @media (max-width: 900px){
+      .row{ grid-template-columns: 1fr; }
+      .grid2{ grid-template-columns: 1fr; }
+    }
   </style>
 </head>
+
 <body>
-<header>
-  <h1>CareSummary (Demo) <span class="pill">School project</span></h1>
-  <p class="subtitle">
-    Demo app: record speech → transcribe with <b>Azure Speech</b> → send text to your <b>Azure Function</b> to summarize into a clinical note.
-    <br><b>Do not use real patient data.</b>
-  </p>
-</header>
-
-<div class="wrap">
-
-  <div class="card">
-    <div class="row">
-      <div class="field">
-        <label for="language">Speech language</label>
-        <select id="language">
-          <option value="en-US" selected>English (US) – en-US</option>
-          <option value="en-GB">English (UK) – en-GB</option>
-          <option value="sv-SE">Swedish – sv-SE</option>
-          <option value="ar-SA">Arabic – ar-SA</option>
-        </select>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>CareSummary (Demo) <span class="badge">School project</span></h1>
+        <div class="sub">
+          Record speech → transcribe with <b>Azure Speech</b> → send text to your <b>Azure Function</b> to summarize into a clinical note.
+        </div>
+        <div class="warnline"><b>Do not use real patient data.</b></div>
       </div>
+      <div class="badge" id="sdkBadge">Speech SDK: loading…</div>
+    </header>
 
-      <div class="field">
-        <label for="noteFormat">Note format</label>
-        <select id="noteFormat">
-          <option value="narrative" selected>Narrative</option>
-          <option value="soap">SOAP</option>
-          <option value="bullet">Bullet summary</option>
-        </select>
-      </div>
-
-      <div class="field wide">
-        <label for="patientId">Patient ID (demo)</label>
-        <input id="patientId" placeholder="Example: P-001 (optional)" />
-      </div>
-
-      <div class="field full">
-        <div class="btnbar">
-          <button id="btnTest" class="primary">Test API</button>
-          <button id="btnStart" class="primary">🎙️ Start recording</button>
-          <button id="btnStop" disabled>⏹️ Stop</button>
-          <button id="btnSummarize" class="primary">✨ Summarize</button>
-          <button id="btnClear" class="danger">🧹 Clear</button>
-          <button id="btnCopyTranscript">Copy transcript</button>
-          <button id="btnCopySummary">Copy summary</button>
+    <div class="card">
+      <div class="row">
+        <div>
+          <label for="lang">Speech language</label>
+          <select id="lang">
+            <option value="sv-SE">Swedish — sv-SE</option>
+            <option value="en-US" selected>English (US) — en-US</option>
+            <option value="en-GB">English (UK) — en-GB</option>
+            <option value="ar-SA">Arabic — ar-SA</option>
+            <option value="de-DE">German — de-DE</option>
+            <option value="fr-FR">French — fr-FR</option>
+          </select>
         </div>
 
-        <div class="status" id="statusBox">
-          <div class="dot" id="statusDot"></div>
-          <div id="statusText">Ready.</div>
+        <div>
+          <label for="format">Note format</label>
+          <select id="format">
+            <option value="Bullet summary" selected>Bullet summary</option>
+            <option value="SOAP">SOAP</option>
+            <option value="Narrative">Narrative</option>
+            <option value="Discharge summary">Discharge summary</option>
+          </select>
         </div>
 
-        <div class="small">
-          <span class="mono">API_BASE</span> is configured in the code (top of script). Your token is fetched from <span class="mono">/speechToken</span>.
+        <div>
+          <label for="patientId">Patient ID (demo)</label>
+          <input id="patientId" placeholder="Example: P-001 (optional)" />
         </div>
+      </div>
+
+      <div class="btnrow">
+        <button class="ghost" id="btnTest">Test API</button>
+        <button class="primary" id="btnStart">🎙️ Start recording</button>
+        <button id="btnStop" disabled>⏹ Stop</button>
+        <button class="good" id="btnSummarize">✨ Summarize</button>
+        <button class="danger" id="btnClear">🧹 Clear</button>
+        <button class="ghost" id="btnCopyTranscript">Copy transcript</button>
+        <button class="ghost" id="btnCopySummary">Copy summary</button>
+      </div>
+
+      <div class="status" id="statusBar">
+        <div class="dot" id="statusDot"></div>
+        <div id="statusText">Ready.</div>
+      </div>
+
+      <div class="hint">
+        API_BASE is set at the top of the script. Token is fetched from <code>/speechToken</code>. Summary is posted to <code>/SummarizeNote</code>.
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <h3>Transcript (what was said)</h3>
+        <textarea id="transcript" placeholder="Press Start recording… or type/paste text here."></textarea>
+        <div class="foot">Tip: You can edit the transcript before summarizing.</div>
+      </div>
+
+      <div class="panel">
+        <h3>Summary / Clinical note (from AI)</h3>
+        <pre id="summary">Press Summarize to generate a clinical note…</pre>
+        <div class="foot">Demo output only. Always review and edit.</div>
       </div>
     </div>
   </div>
 
-  <div class="grid2">
-    <div class="card">
-      <label for="transcript"><b>Transcript</b> (what was said)</label>
-      <textarea id="transcript" placeholder="Press Start recording, speak, then Stop. The transcript will appear here..."></textarea>
-      <div class="small" id="partialHint"></div>
-    </div>
+  <!-- Speech SDK (browser bundle) -->
+  <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@1.47.0/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle-min.js"></script>
 
-    <div class="card">
-      <label for="summary"><b>Summary / Clinical note</b> (from AI)</label>
-      <textarea id="summary" placeholder="Press Summarize to generate a clinical note..."></textarea>
-      <div class="small">
-        This output is for demo only. Always review and edit.
-      </div>
-    </div>
-  </div>
-</div>
+  <script>
+    /*******************************************************************
+     * CONFIG — CHANGE THIS to your Function App base (no trailing slash)
+     *******************************************************************/
+    const API_BASE = "https://caresummary-api-feerbpb5b8gwf6cf.westeurope-01.azurewebsites.net/api";
 
-<!-- Speech SDK (browser bundle) -->
-<script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@1.38.0/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
+    /*******************************************************************
+     * UI helpers
+     *******************************************************************/
+    const el = (id) => document.getElementById(id);
 
-<script>
-  /***************************************************************
-   * CONFIG (EDIT THIS ONLY IF YOUR FUNCTION HOST CHANGES)
-   ***************************************************************/
-  const API_BASE = "https://caresummary-api-feerbpb5b8gwf6cf.westeurope-01.azurewebsites.net/api";
-  // Your backend function route name (Azure Functions is usually the function name)
-  // We'll try both /SummarizeNote and /summarizeNote automatically.
-  const SUMMARY_PATHS = ["SummarizeNote", "summarizeNote"];
+    const sdkBadge = el("sdkBadge");
+    const statusDot = el("statusDot");
+    const statusText = el("statusText");
 
-  /***************************************************************
-   * UI helpers
-   ***************************************************************/
-  const $ = (id) => document.getElementById(id);
-  const statusDot = $("statusDot");
-  const statusText = $("statusText");
+    const langSel = el("lang");
+    const formatSel = el("format");
+    const patientIdInp = el("patientId");
 
-  function setStatus(msg, kind = "idle") {
-    statusText.textContent = msg;
-    statusDot.classList.remove("ok", "bad", "live");
-    if (kind === "ok") statusDot.classList.add("ok");
-    else if (kind === "bad") statusDot.classList.add("bad");
-    else if (kind === "live") statusDot.classList.add("live");
-  }
+    const btnTest = el("btnTest");
+    const btnStart = el("btnStart");
+    const btnStop = el("btnStop");
+    const btnSummarize = el("btnSummarize");
+    const btnClear = el("btnClear");
+    const btnCopyTranscript = el("btnCopyTranscript");
+    const btnCopySummary = el("btnCopySummary");
 
-  function appendTranscript(text) {
-    const box = $("transcript");
-    const sep = box.value && !box.value.endsWith("\n") ? "\n" : "";
-    box.value = box.value + sep + text;
-    box.scrollTop = box.scrollHeight;
-  }
+    const transcriptTA = el("transcript");
+    const summaryPre = el("summary");
 
-  async function copyToClipboard(text) {
-    await navigator.clipboard.writeText(text);
-  }
-
-  /***************************************************************
-   * Speech (mic → text)
-   ***************************************************************/
-  let recognizer = null;
-  let isRecording = false;
-
-  async function getSpeechToken() {
-    const r = await fetch(`${API_BASE}/speechToken`, { method: "GET" });
-    if (!r.ok) throw new Error(`speechToken failed: HTTP ${r.status}`);
-    return await r.json(); // { token, region }
-  }
-
-  async function startRecording() {
-    if (isRecording) return;
-
-    // Basic checks
-    if (!window.SpeechSDK) {
-      setStatus("Speech SDK not loaded. Check the script tag / network.", "bad");
-      return;
+    function setStatus(kind, msg){
+      statusDot.className = "dot" + (kind ? (" " + kind) : "");
+      statusText.textContent = msg;
     }
 
-    setStatus("Requesting token...", "live");
-
-    const lang = $("language").value;
-
-    let tokenData;
-    try {
-      tokenData = await getSpeechToken();
-    } catch (e) {
-      console.error(e);
-      setStatus("Token request failed. Check API_BASE, CORS, and Function status.", "bad");
-      return;
+    function safeJsonParse(text){
+      try { return JSON.parse(text); } catch { return null; }
     }
 
-    try {
-      const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(tokenData.token, tokenData.region);
-      speechConfig.speechRecognitionLanguage = lang;
+    async function copyToClipboard(text){
+      await navigator.clipboard.writeText(text);
+    }
 
-      // Optional: nicer punctuation / formatting where supported
+    /*******************************************************************
+     * Speech state
+     *******************************************************************/
+    const state = {
+      recognizer: null,
+      recording: false,
+      lastPartial: ""
+    };
+
+    function sdkReady(){
+      return !!(window.SpeechSDK && window.SpeechSDK.SpeechRecognizer);
+    }
+
+    function updateSdkBadge(){
+      if (sdkReady()){
+        sdkBadge.textContent = "Speech SDK: ready";
+        sdkBadge.style.color = "rgba(255,255,255,0.80)";
+      } else {
+        sdkBadge.textContent = "Speech SDK: not loaded";
+        sdkBadge.style.color = "rgba(255,92,122,0.95)";
+      }
+    }
+    updateSdkBadge();
+
+    /*******************************************************************
+     * API calls
+     *******************************************************************/
+    async function getSpeechToken(){
+      const url = `${API_BASE}/speechToken`;
+      const res = await fetch(url, { method: "GET" });
+      const text = await res.text();
+      if (!res.ok) throw new Error(`speechToken failed (${res.status}): ${text}`);
+      const data = safeJsonParse(text);
+      if (!data?.token) throw new Error(`speechToken returned unexpected response: ${text}`);
+      return data; // { token, region }
+    }
+
+    async function callSummarizeNote(note, format, patientId){
+      const url = `${API_BASE}/SummarizeNote`;
+      const payload = { note, format, patientId };
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const text = await res.text();
+      if (!res.ok) {
+        throw new Error(`SummarizeNote failed (${res.status}): ${text}`);
+      }
+
+      // Your function returns JSON. If it returns text, we still show it.
+      const data = safeJsonParse(text);
+      return data ?? text;
+    }
+
+    /*******************************************************************
+     * Speech controls
+     *******************************************************************/
+    async function startRecording(){
+      if (!sdkReady()) {
+        setStatus("bad", "Speech SDK is not loaded. Check network/CDN and refresh.");
+        return;
+      }
+      if (state.recording) return;
+
+      setStatus("warn", "Getting Speech token…");
+
+      btnStart.disabled = true;
+      btnStop.disabled = true;
+      btnSummarize.disabled = true;
+
       try {
-        speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceResponse_PostProcessingOption, "TrueText");
-      } catch {}
+        const { token, region } = await getSpeechToken();
 
-      const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-      recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+        const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
+        speechConfig.speechRecognitionLanguage = langSel.value;
 
-      $("partialHint").textContent = "";
+        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+        const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
 
-      recognizer.recognizing = (s, e) => {
-        if (e.result && e.result.text) {
-          $("partialHint").textContent = "Listening… " + e.result.text;
-        }
-      };
+        state.recognizer = recognizer;
+        state.recording = true;
+        state.lastPartial = "";
 
-      recognizer.recognized = (s, e) => {
-        if (e.result && e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-          const text = (e.result.text || "").trim();
-          if (text) appendTranscript(text);
-        }
-      };
+        recognizer.recognizing = (_s, e) => {
+          // partial text (do not permanently append)
+          state.lastPartial = e?.result?.text || "";
+          setStatus("warn", state.lastPartial ? `Listening… ${state.lastPartial}` : "Listening…");
+        };
 
-      recognizer.canceled = (s, e) => {
-        console.warn("Speech canceled:", e);
-        setStatus("Recognition canceled. Check mic permissions and Speech resource.", "bad");
-        stopRecording();
-      };
+        recognizer.recognized = (_s, e) => {
+          if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+            const text = (e.result.text || "").trim();
+            if (text) {
+              const current = transcriptTA.value.trim();
+              transcriptTA.value = current ? (current + "\n" + text) : text;
+            }
+          }
+        };
 
-      recognizer.sessionStopped = () => {
-        stopRecording();
-      };
+        recognizer.canceled = (_s, e) => {
+          const details = (e?.errorDetails || "").trim();
+          setStatus("bad", details ? `Canceled: ${details}` : "Canceled.");
+          stopRecording();
+        };
 
-      recognizer.startContinuousRecognitionAsync(
+        recognizer.sessionStopped = () => {
+          // Called when service ends session
+          stopRecording();
+        };
+
+        recognizer.startContinuousRecognitionAsync(
+          () => {
+            btnStop.disabled = false;
+            btnSummarize.disabled = false;
+            setStatus("ok", "Recording started. Speak into your microphone…");
+          },
+          (err) => {
+            throw new Error("Could not start recognition: " + err);
+          }
+        );
+
+      } catch (err){
+        console.error(err);
+        setStatus("bad", err.message || String(err));
+        btnStart.disabled = false;
+        btnStop.disabled = true;
+        btnSummarize.disabled = false;
+      }
+    }
+
+    function stopRecording(){
+      if (!state.recording) {
+        btnStart.disabled = false;
+        btnStop.disabled = true;
+        btnSummarize.disabled = false;
+        return;
+      }
+
+      btnStop.disabled = true;
+
+      const r = state.recognizer;
+      state.recording = false;
+      state.recognizer = null;
+      state.lastPartial = "";
+
+      if (!r) {
+        btnStart.disabled = false;
+        btnSummarize.disabled = false;
+        setStatus("ok", "Stopped.");
+        return;
+      }
+
+      r.stopContinuousRecognitionAsync(
         () => {
-          isRecording = true;
-          $("btnStart").disabled = true;
-          $("btnStop").disabled = false;
-          setStatus("Recording… speak now.", "live");
+          try { r.close(); } catch {}
+          btnStart.disabled = false;
+          btnSummarize.disabled = false;
+          setStatus("ok", "Recording stopped.");
         },
         (err) => {
           console.error(err);
-          setStatus("Failed to start recognition. Check mic permission.", "bad");
+          try { r.close(); } catch {}
+          btnStart.disabled = false;
+          btnSummarize.disabled = false;
+          setStatus("warn", "Stopped (with warning).");
         }
       );
-    } catch (e) {
-      console.error(e);
-      setStatus("Could not access microphone / start Speech. Allow mic permission.", "bad");
-    }
-  }
-
-  function stopRecording() {
-    $("partialHint").textContent = "";
-
-    if (!recognizer) {
-      isRecording = false;
-      $("btnStart").disabled = false;
-      $("btnStop").disabled = true;
-      setStatus("Ready.", "ok");
-      return;
     }
 
-    recognizer.stopContinuousRecognitionAsync(
-      () => {
-        recognizer.close();
-        recognizer = null;
-        isRecording = false;
-        $("btnStart").disabled = false;
-        $("btnStop").disabled = true;
-        setStatus("Stopped. You can summarize now.", "ok");
-      },
-      (err) => {
-        console.error(err);
-        // Still try to cleanup
-        try { recognizer.close(); } catch {}
-        recognizer = null;
-        isRecording = false;
-        $("btnStart").disabled = false;
-        $("btnStop").disabled = true;
-        setStatus("Stopped (with warnings).", "ok");
-      }
-    );
-  }
+    /*******************************************************************
+     * Actions
+     *******************************************************************/
+    async function testApi(){
+      setStatus("warn", "Testing API…");
 
-  /***************************************************************
-   * Summarize (text → AI note via your Function)
-   ***************************************************************/
-  async function postSummarize(note, patientId, noteFormat) {
-    const payload = {
-      note,
-      patientId: patientId || "",
-      format: noteFormat || "narrative"
-    };
-
-    // Try both possible route names (case differences)
-    let lastErr = null;
-    for (const p of SUMMARY_PATHS) {
       try {
-        const r = await fetch(`${API_BASE}/${p}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        if (!r.ok) {
-          const txt = await r.text().catch(() => "");
-          throw new Error(`Summarize HTTP ${r.status} on /${p}. ${txt}`);
-        }
-        return await r.json().catch(async () => ({ text: await r.text() }));
-      } catch (e) {
-        lastErr = e;
+        const t = await getSpeechToken();
+        setStatus("ok", `OK: speechToken works (region: ${t.region || "?"}). Now try Summarize.`);
+      } catch (err){
+        console.error(err);
+        setStatus("bad", `Test failed: ${err.message || err}`);
       }
     }
-    throw lastErr || new Error("Summarize failed.");
-  }
 
-  async function summarizeNow() {
-    const note = $("transcript").value.trim();
-    if (!note) {
-      setStatus("Transcript is empty. Record something first.", "bad");
-      return;
+    async function summarize(){
+      const note = (transcriptTA.value || "").trim();
+      if (!note){
+        setStatus("warn", "Nothing to summarize. Record or paste text first.");
+        return;
+      }
+
+      setStatus("warn", "Summarizing…");
+      btnSummarize.disabled = true;
+
+      try {
+        const data = await callSummarizeNote(note, formatSel.value, (patientIdInp.value || "").trim());
+
+        // pretty display
+        if (typeof data === "string") {
+          summaryPre.textContent = data;
+        } else {
+          summaryPre.textContent = JSON.stringify(data, null, 2);
+        }
+
+        setStatus("ok", "Summary generated.");
+      } catch (err){
+        console.error(err);
+        summaryPre.textContent = "Summarize failed. Check Function route/name + logs.\n\n" + (err.message || String(err));
+        setStatus("bad", "Summarize failed. Open Azure Function logs for details.");
+      } finally {
+        btnSummarize.disabled = false;
+      }
     }
-    if (isRecording) {
-      setStatus("Stop recording before summarizing.", "bad");
-      return;
+
+    function clearAll(){
+      stopRecording();
+      transcriptTA.value = "";
+      summaryPre.textContent = "Press Summarize to generate a clinical note…";
+      setStatus("", "Cleared.");
     }
 
-    const patientId = $("patientId").value.trim();
-    const format = $("noteFormat").value;
+    /*******************************************************************
+     * Wire up buttons
+     *******************************************************************/
+    btnTest.addEventListener("click", testApi);
+    btnStart.addEventListener("click", startRecording);
+    btnStop.addEventListener("click", stopRecording);
+    btnSummarize.addEventListener("click", summarize);
+    btnClear.addEventListener("click", clearAll);
 
-    $("btnSummarize").disabled = true;
-    setStatus("Summarizing…", "live");
+    btnCopyTranscript.addEventListener("click", async () => {
+      try{
+        await copyToClipboard(transcriptTA.value || "");
+        setStatus("ok", "Transcript copied.");
+      } catch (err){
+        setStatus("bad", "Copy failed (clipboard permission).");
+      }
+    });
 
-    try {
-      const data = await postSummarize(note, patientId, format);
+    btnCopySummary.addEventListener("click", async () => {
+      try{
+        await copyToClipboard(summaryPre.textContent || "");
+        setStatus("ok", "Summary copied.");
+      } catch (err){
+        setStatus("bad", "Copy failed (clipboard permission).");
+      }
+    });
 
-      // Your backend might return { summary: "..."} or { note: "..."} or raw text.
-      const possible =
-        data.summary ||
-        data.note ||
-        data.result ||
-        data.text ||
-        (typeof data === "string" ? data : JSON.stringify(data, null, 2));
-
-      $("summary").value = String(possible).trim();
-      setStatus("Summary generated.", "ok");
-    } catch (e) {
-      console.error(e);
-      setStatus("Summarize failed. Check Function route/name + logs.", "bad");
-      $("summary").value = "";
-    } finally {
-      $("btnSummarize").disabled = false;
-    }
-  }
-
-  /***************************************************************
-   * Clear + Test
-   ***************************************************************/
-  function clearAll() {
-    $("transcript").value = "";
-    $("summary").value = "";
-    $("partialHint").textContent = "";
-    setStatus("Cleared.", "ok");
-  }
-
-  async function testApi() {
-    setStatus("Testing API…", "live");
-    try {
-      const r = await fetch(`${API_BASE}/speechToken`);
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      await r.json();
-      setStatus("API OK ✅ speechToken reachable.", "ok");
-      alert("API OK ✅ (speechToken works)");
-    } catch (e) {
-      console.error(e);
-      setStatus("API test failed. Check API_BASE + CORS + Function running.", "bad");
-      alert("API test failed ❌. Open DevTools Console for details.");
-    }
-  }
-
-  /***************************************************************
-   * Wire up buttons
-   ***************************************************************/
-  $("btnStart").addEventListener("click", startRecording);
-  $("btnStop").addEventListener("click", stopRecording);
-  $("btnSummarize").addEventListener("click", summarizeNow);
-  $("btnClear").addEventListener("click", clearAll);
-  $("btnTest").addEventListener("click", testApi);
-
-  $("btnCopyTranscript").addEventListener("click", async () => {
-    try {
-      await copyToClipboard($("transcript").value);
-      setStatus("Transcript copied.", "ok");
-    } catch {
-      setStatus("Copy failed (browser blocked clipboard).", "bad");
-    }
-  });
-
-  $("btnCopySummary").addEventListener("click", async () => {
-    try {
-      await copyToClipboard($("summary").value);
-      setStatus("Summary copied.", "ok");
-    } catch {
-      setStatus("Copy failed (browser blocked clipboard).", "bad");
-    }
-  });
-
-  // Cleanup
-  window.addEventListener("beforeunload", () => {
-    try { stopRecording(); } catch {}
-  });
-
-  setStatus("Ready.", "ok");
-</script>
+    // re-check Speech SDK after load
+    window.addEventListener("load", () => {
+      updateSdkBadge();
+      if (!sdkReady()){
+        setStatus("warn", "Speech SDK still not ready. If buttons don’t work, refresh once.");
+      }
+    });
+  </script>
 </body>
 </html>
