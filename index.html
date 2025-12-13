@@ -13,8 +13,8 @@
 
   <style>
     :root{
-      --bg:#071023; --panel:#0b1733; --panel2:#0a142e; --text:#e8eefc; --muted:#9fb2d6;
-      --border:rgba(255,255,255,.10); --accent:#7aa6ff; --good:#3ddc97; --warn:#ffd166; --bad:#ff5c7a;
+      --bg:#071023; --text:#e8eefc; --muted:#9fb2d6;
+      --border:rgba(255,255,255,.10); --good:#3ddc97; --warn:#ffd166; --bad:#ff5c7a;
       --btn:#12244a;
       --shadow:0 18px 60px rgba(0,0,0,.28);
       --radius:16px;
@@ -125,7 +125,7 @@
       <span class="pill">School project</span>
     </div>
     <p class="sub">
-      Demo: record speech → transcribe (Azure Speech) → summarize/report via Azure Function + Foundry model.
+      Demo: record speech → transcribe (Azure Speech) → summary/report via Azure Function + Foundry model.
       <br><b>Do not use real patient data.</b>
     </p>
 
@@ -143,8 +143,8 @@
         <div>
           <label for="outputMode">Output</label>
           <select id="outputMode">
-            <option value="summary" selected>Sammanfattning (JSON/Text)</option>
-            <option value="report">Rapport (HTML-template)</option>
+            <option value="summary" selected>Summary (JSON/Text)</option>
+            <option value="report">Report (HTML template)</option>
           </select>
         </div>
 
@@ -153,6 +153,7 @@
           <select id="format">
             <option>Bullet summary</option>
             <option>SOAP</option>
+            <option>SBAR</option>
             <option>Narrative</option>
           </select>
         </div>
@@ -165,7 +166,9 @@
         <div>
           <label for="reportTemplate">Rapportmall (Report)</label>
           <select id="reportTemplate">
-            <option>Journalanteckning</option>
+            <option>SOAP-journalanteckning</option>
+            <option>SBAR-rapport (överlämning)</option>
+            <option>Journalanteckning (enkel)</option>
             <option>Rondanteckning</option>
             <option>Omvårdnadsrapport</option>
             <option>Utskrivningsanteckning</option>
@@ -201,8 +204,8 @@
       </div>
 
       <div class="smallnote">
-        Summary uses <span class="mono">POST /SummarizeNote</span>.<br/>
-        Report uses <span class="mono">POST /RenderReport</span> and opens a new tab for printing/saving as PDF.
+        Summary uses <span class="mono">POST /SummarizeNote</span> (SOAP/SBAR supported).<br/>
+        Report uses <span class="mono">POST /RenderReport</span> (SOAP or SBAR HTML template) and opens a new tab.
       </div>
     </div>
 
@@ -216,7 +219,7 @@
       <div class="card">
         <h3>Output (Summary JSON/Text or Report status)</h3>
         <textarea id="output" placeholder="Press Generate..."></textarea>
-        <div class="smallnote">For Report mode, a new tab opens with the HTML report.</div>
+        <div class="smallnote">For Report mode, a new tab opens with the HTML report (print/save as PDF).</div>
       </div>
     </div>
   </div>
@@ -225,7 +228,7 @@
     // ======================
     // CONFIG
     // ======================
-    // If later you connect Functions as SWA backend, use:
+    // If you later connect Functions as SWA backend, use:
     // const API_BASE = "/api";
     const API_BASE = "https://caresummary-api-feerbpb5b8gwf6cf.westeurope-01.azurewebsites.net/api";
 
@@ -448,13 +451,13 @@
 
       // ---- SUMMARY mode ----
       if (mode === "summary") {
-        setStatus("Summarizing…", "warn");
+        setStatus("Generating summary…", "warn");
         btnGenerate.disabled = true;
 
         try {
           const res = await apiPost("/SummarizeNote", {
             note,
-            format: format.value,
+            format: format.value,    // Bullet / SOAP / SBAR / Narrative
             patientId
           });
 
@@ -465,7 +468,7 @@
           console.error(err);
           output.value = String(err.message || err);
           saveAll();
-          setStatus("Summarize failed. Check Function logs.", "bad");
+          setStatus("Summary failed. Check Function logs.", "bad");
         } finally {
           btnGenerate.disabled = false;
         }
@@ -480,11 +483,10 @@
         const html = await apiPostText("/RenderReport", {
           transcript: note,
           patientId,
-          template: reportTemplate.value,
-          language: reportLang.value
+          template: reportTemplate.value, // SOAP-journalanteckning / SBAR-rapport...
+          language: reportLang.value      // sv / en
         });
 
-        // open a new tab with the HTML
         const w = window.open("", "_blank");
         if (!w) {
           output.value = "Popup blocked. Allow popups and try again.";
@@ -532,10 +534,10 @@
         await apiGet("/speechToken");
         setStatus("OK: /speechToken reachable.", "good");
 
-        // Optional: quick test based on mode
+        // quick demo based on selected mode
         if (outputMode.value === "summary") {
           const demo = await apiPost("/SummarizeNote", {
-            note: "Patient reports headache for 3 days. No fever. Pain 6/10.",
+            note: "Situation: Patienten beskriver huvudvärk i tre dagar. Ingen feber.",
             format: format.value,
             patientId: "P-TEST"
           });
