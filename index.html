@@ -5,267 +5,292 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>CareSummary (Demo)</title>
 
-  <!-- Speech SDK (browser bundle) -->
-  <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@1.38.0/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle-min.js"></script>
+  <!-- Microsoft Speech SDK (browser) -->
+  <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+
+  <!-- HTML -> PDF (client-side) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
     :root{
-      --bg1:#070b1a; --bg2:#0b1230; --card:rgba(255,255,255,.06);
-      --card2:rgba(255,255,255,.08);
-      --text:#eaf0ff; --muted:rgba(234,240,255,.75);
-      --stroke:rgba(255,255,255,.10);
-      --good:#39d98a; --warn:#ffd166; --bad:#ff5c7a;
-      --btn:#1f5eff; --btn2:#1b2a5a;
-      --radius:16px;
+      --bg0:#070b1a; --bg1:#08122b;
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.08);
+      --stroke: rgba(255,255,255,.10);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.70);
+      --muted2: rgba(255,255,255,.55);
+      --good: #4ade80;
+      --bad: #fb7185;
+      --warn:#fbbf24;
+      --btn: rgba(59,130,246,.25);
+      --btn2: rgba(148,163,184,.18);
+      --shadow: 0 20px 60px rgba(0,0,0,.45);
+      --radius: 18px;
+      --radius2: 12px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
-    *{box-sizing:border-box}
+
+    *{ box-sizing:border-box; }
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", sans-serif;
-      color:var(--text);
-      background: radial-gradient(1200px 600px at 20% 0%, #182a7a33 0%, transparent 55%),
-                  radial-gradient(900px 500px at 90% 20%, #7a1a7a33 0%, transparent 55%),
-                  linear-gradient(180deg,var(--bg1),var(--bg2));
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 18% 15%, #1a2b6a 0%, transparent 60%),
+        radial-gradient(1000px 600px at 78% 20%, #2a1858 0%, transparent 55%),
+        radial-gradient(900px 520px at 50% 90%, #0b5a61 0%, transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
       min-height:100vh;
-      padding:28px;
+      padding: 34px 18px 60px;
     }
-    .wrap{max-width:1180px;margin:0 auto}
-    .titleRow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-    h1{margin:0;font-size:34px;letter-spacing:.2px}
-    .pill{
-      font-size:12px;
-      padding:6px 10px;
-      border:1px solid var(--stroke);
-      border-radius:999px;
-      background:rgba(255,255,255,.06);
-      color:var(--muted);
+
+    .wrap{ max-width: 1200px; margin:0 auto; }
+    .top{
+      display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+      margin-bottom: 10px;
+    }
+    h1{
+      font-size: 34px; margin:0; letter-spacing:.2px;
+    }
+    .badge{
+      font-size:12px; color: rgba(255,255,255,.85);
+      padding: 6px 10px; border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
     }
     .sub{
-      margin-top:6px;
-      color:var(--muted);
-      line-height:1.35;
+      margin: 6px 0 18px;
+      color: var(--muted);
+      line-height: 1.5;
     }
+    .sub b{ color: rgba(255,255,255,.88); }
     .card{
-      margin-top:18px;
-      padding:18px;
-      border:1px solid var(--stroke);
-      border-radius:var(--radius);
-      background:linear-gradient(180deg,var(--card),rgba(255,255,255,.03));
-      box-shadow: 0 10px 50px rgba(0,0,0,.35);
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      padding: 18px;
     }
-    .grid4{
+    .grid{
       display:grid;
-      grid-template-columns: 220px 240px 240px 1fr;
-      gap:12px;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 12px;
     }
+    .grid .field{ min-width: 0; }
+    .field label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted2);
+      margin: 0 0 6px;
+    }
+    select, input{
+      width:100%;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      padding: 12px 12px;
+      outline: none;
+    }
+    input::placeholder{ color: rgba(255,255,255,.35); }
+    .hint{
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted2);
+      font-family: var(--mono);
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+
     .grid2{
       display:grid;
       grid-template-columns: 1fr 1fr;
-      gap:16px;
-      margin-top:16px;
+      gap: 12px;
+      margin-top: 12px;
     }
-    label{
-      display:block;
-      font-size:12px;
-      color:var(--muted);
-      margin-bottom:6px;
-    }
-    select,input[type="text"]{
-      width:100%;
-      height:40px;
-      border-radius:12px;
-      border:1px solid var(--stroke);
-      background:rgba(0,0,0,.22);
-      color:var(--text);
-      padding:0 12px;
-      outline:none;
-    }
-    select:focus,input[type="text"]:focus{border-color:rgba(95,135,255,.6)}
-    .grid2small{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:12px;
-      margin-top:10px;
-    }
-    .btnRow{
+
+    .buttons{
       display:flex;
-      gap:10px;
       flex-wrap:wrap;
-      margin-top:14px;
+      gap: 10px;
+      margin-top: 14px;
       align-items:center;
     }
     button{
-      border:1px solid var(--stroke);
-      background:rgba(0,0,0,.18);
-      color:var(--text);
-      padding:10px 14px;
-      border-radius:14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: var(--btn2);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 14px;
       cursor:pointer;
-      font-weight:600;
-      letter-spacing:.2px;
-    }
-    button.primary{
-      background:linear-gradient(180deg, rgba(31,94,255,.95), rgba(31,94,255,.55));
-      border-color:rgba(31,94,255,.5);
-    }
-    button.danger{
-      background:linear-gradient(180deg, rgba(255,92,122,.25), rgba(255,92,122,.12));
-      border-color:rgba(255,92,122,.35);
-    }
-    button:disabled{
-      opacity:.45;
-      cursor:not-allowed;
-    }
-    .statusBar{
-      margin-top:12px;
-      display:flex;
+      transition: transform .05s ease, background .15s ease;
+      font-weight: 600;
+      letter-spacing: .1px;
+      display:inline-flex;
+      gap: 8px;
       align-items:center;
-      gap:10px;
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid var(--stroke);
-      background:rgba(0,0,0,.18);
-      color:var(--muted);
-    }
-    .dot{
-      width:10px;height:10px;border-radius:50%;
-      background:rgba(255,255,255,.25);
-      box-shadow:0 0 0 4px rgba(255,255,255,.06);
-    }
-    .dot.good{background:var(--good); box-shadow:0 0 0 4px rgba(57,217,138,.14)}
-    .dot.warn{background:var(--warn); box-shadow:0 0 0 4px rgba(255,209,102,.14)}
-    .dot.bad{background:var(--bad); box-shadow:0 0 0 4px rgba(255,92,122,.14)}
-    .help{
-      margin-top:10px;
-      color:rgba(160,175,255,.85);
-      font-size:12px;
-      line-height:1.35;
-    }
-    .mono{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size:12px;
-      color:rgba(234,240,255,.78);
-      margin-top:10px;
-      padding:10px 12px;
-      border-radius:12px;
-      border:1px solid var(--stroke);
-      background:rgba(0,0,0,.16);
-      overflow:auto;
-      white-space:nowrap;
-    }
-    textarea{
-      width:100%;
-      min-height:260px;
-      resize:vertical;
-      border-radius:14px;
-      border:1px solid var(--stroke);
-      background:rgba(0,0,0,.20);
-      color:var(--text);
-      padding:12px;
-      outline:none;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size:12px;
-      line-height:1.4;
-    }
-    .boxTitle{
-      font-weight:800;
-      margin:0 0 10px 0;
-      color:rgba(200,215,255,.95);
-      font-size:13px;
-      letter-spacing:.2px;
-    }
-    .foot{
-      margin-top:10px;
-      color:var(--muted);
-      font-size:12px;
-    }
-    .rowRight{
-      margin-left:auto;
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    .checkbox{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      color:var(--muted);
-      font-size:12px;
       user-select:none;
     }
-    .checkbox input{transform: translateY(1px);}
-    @media (max-width: 980px){
-      .grid4{grid-template-columns:1fr 1fr}
-      .grid2{grid-template-columns:1fr}
+    button.primary{ background: var(--btn); border-color: rgba(59,130,246,.40); }
+    button.danger { background: rgba(244,63,94,.22); border-color: rgba(244,63,94,.35); }
+    button:active{ transform: translateY(1px); }
+    button:disabled{
+      opacity: .45;
+      cursor:not-allowed;
+    }
+
+    .rightBits{
+      margin-left:auto;
+      display:flex;
+      gap: 12px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .chk{
+      display:flex; align-items:center; gap:8px;
+      color: var(--muted);
+      font-size: 13px;
+      user-select:none;
+    }
+    .chk input{ width:auto; }
+
+    .status{
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      color: var(--muted);
+      min-height: 48px;
+    }
+    .dot{
+      width: 10px; height: 10px; border-radius: 999px;
+      background: rgba(255,255,255,.28);
+      box-shadow: 0 0 0 4px rgba(255,255,255,.06);
+    }
+    .dot.good{ background: var(--good); box-shadow: 0 0 0 4px rgba(74,222,128,.15); }
+    .dot.bad{ background: var(--bad); box-shadow: 0 0 0 4px rgba(251,113,133,.15); }
+    .dot.warn{ background: var(--warn); box-shadow: 0 0 0 4px rgba(251,191,36,.15); }
+
+    textarea{
+      width:100%;
+      min-height: 320px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.20);
+      color: var(--text);
+      padding: 14px 14px;
+      font-family: var(--mono);
+      line-height: 1.45;
+      resize: vertical;
+      outline: none;
+    }
+
+    .smallNote{
+      margin-top: 10px;
+      color: var(--muted2);
+      font-size: 12px;
+      line-height:1.45;
+    }
+    .smallNote code{ font-family: var(--mono); color: rgba(255,255,255,.85); }
+
+    .twoCols{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 1020px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+      .twoCols{ grid-template-columns: 1fr; }
     }
   </style>
 </head>
 
 <body>
   <div class="wrap">
-    <div class="titleRow">
+    <div class="top">
       <h1>CareSummary (Demo)</h1>
-      <span class="pill">School project</span>
+      <span class="badge">School project</span>
     </div>
+
     <div class="sub">
-      Demo: record speech → transcribe (Azure Speech) → Summary/Report via Azure Function + Foundry model.<br/>
-      <strong>Do not use real patient data.</strong>
+      Demo: record speech → transcribe (<b>Azure Speech</b>) → Summary/Report via <b>Azure Function</b> + Foundry model.<br/>
+      <b>Do not use real patient data.</b>
     </div>
 
     <div class="card">
-      <div class="grid4">
-        <div>
-          <label for="speechLang">Speech language</label>
+      <div class="grid">
+        <div class="field">
+          <label>Speech language</label>
           <select id="speechLang">
-            <option value="sv-SE">Swedish — sv-SE</option>
-            <option value="en-US">English (US) — en-US</option>
+            <option value="sv-SE" selected>Swedish – sv-SE</option>
+            <option value="en-US">English (US) – en-US</option>
+            <option value="ar-SA">Arabic (SA) – ar-SA</option>
           </select>
         </div>
 
-        <div>
-          <label for="outputMode">Output</label>
+        <div class="field">
+          <label>Output</label>
           <select id="outputMode">
-            <option value="summary">Summary (JSON/Text)</option>
-            <option value="report" selected>Report (HTML template)</option>
-            <option value="both">Both (Summary + Report)</option>
+            <option value="summary" selected>Summary (JSON/Text)</option>
+            <option value="report">Report (HTML template)</option>
           </select>
         </div>
 
-        <div>
-          <label for="summaryFormat">Note format (Summary)</label>
-          <select id="summaryFormat">
+        <div class="field">
+          <label>Note format (Summary)</label>
+          <select id="noteFormat">
             <option value="SOAP" selected>SOAP</option>
             <option value="SBAR">SBAR</option>
-            <option value="Bullet summary">Bullet summary</option>
+            <option value="bullet">Bullet summary</option>
+            <option value="narrative">Narrative</option>
           </select>
         </div>
 
-        <div>
-          <label for="patientId">Patient ID (demo)</label>
-          <input id="patientId" type="text" placeholder="Example: P-001 (optional)" />
+        <div class="field">
+          <label>Patient ID (demo)</label>
+          <input id="patientId" placeholder="Example: P-001 (optional)" />
         </div>
-      </div>
 
-      <div class="grid2small">
-        <div>
-          <label for="reportTemplate">Rapportmall (Report)</label>
+        <div class="field">
+          <label>Rapportmall (Report)</label>
           <select id="reportTemplate">
-            <option value="Journalanteckning">Journalanteckning (enkel)</option>
-            <option value="SBAR" selected>SBAR (enkel)</option>
+            <option value="Journalanteckning" selected>Journalanteckning (enkel)</option>
+            <option value="SBAR">SBAR (enkel)</option>
+            <option value="Remiss">Remiss (enkel)</option>
+            <option value="Utskrivningsrapport">Utskrivningsrapport</option>
+            <option value="Telefonanteckning">Telefonanteckning</option>
+            <option value="Akutanteckning">Akutanteckning</option>
           </select>
         </div>
 
-        <div>
-          <label for="reportLang">Rapportspråk (Report)</label>
+        <div class="field">
+          <label>Rapportspråk (Report)</label>
           <select id="reportLang">
             <option value="sv" selected>Svenska</option>
             <option value="en">English</option>
           </select>
         </div>
+
+        <div class="field" style="grid-column: span 2;">
+          <label>API base</label>
+          <input id="apiBase" />
+          <div class="hint" id="apiHint"></div>
+        </div>
       </div>
 
-      <div class="btnRow">
-        <button id="btnTest" title="Calls GET /speechToken">🧪 Test API</button>
+      <div class="buttons">
+        <button class="primary" id="btnTest">🧪 Test API</button>
+
         <button class="primary" id="btnStart">🎙️ Start recording</button>
         <button id="btnStop" disabled>⏹️ Stop</button>
 
@@ -275,414 +300,41 @@
         <button id="btnCopyTranscript">📋 Copy transcript</button>
         <button id="btnCopyOutput">📋 Copy output</button>
 
-        <button id="btnPdf" disabled>⬇️ Download PDF</button>
+        <button id="btnDownloadPdf" disabled>⬇️ Download PDF</button>
 
-        <div class="rowRight">
-          <label class="checkbox">
-            <input type="checkbox" id="chkSave" checked />
+        <div class="rightBits">
+          <label class="chk">
+            <input type="checkbox" id="chkSaveLocal" checked />
             Spara lokalt (demo)
           </label>
         </div>
       </div>
 
-      <div class="statusBar">
-        <span id="dot" class="dot"></span>
-        <div id="statusText">Ready.</div>
+      <div class="status" id="statusBox">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">Ready.</span>
       </div>
 
-      <div class="mono" id="apiBaseLine"></div>
-
-      <div class="help">
+      <div class="smallNote">
         Summary uses <code>POST /SummarizeNote</code> (SOAP/SBAR supported).<br/>
-        Report uses <code>POST /RenderReport</code> and opens a new tab with the HTML report (you can print/save as PDF too).<br/>
-        PDF button tries <code>POST /RenderReportPdf</code> (if you added that function) otherwise falls back to opening HTML.
+        Report uses <code>POST /RenderReport</code> and opens a new tab with the HTML report (you can print/save as PDF too).
       </div>
 
-      <div class="grid2">
-        <div>
-          <div class="boxTitle">Transcript (what was said)</div>
-          <textarea id="transcript" placeholder="Press Start recording and speak..."></textarea>
-          <div class="foot">You can edit the transcript before generating.</div>
+      <div class="twoCols">
+        <div class="card" style="padding:16px;">
+          <div style="font-weight:700; margin-bottom:10px;">Transcript (what was said)</div>
+          <textarea id="txtTranscript" placeholder="Press Start recording and speak..."></textarea>
+          <div class="smallNote">You can edit the transcript before generating.</div>
         </div>
 
-        <div>
-          <div class="boxTitle">Output (Summary JSON/Text or Report status)</div>
-          <textarea id="output" placeholder="Press Generate to produce a summary or report..."></textarea>
-          <div class="foot" id="outFoot">For Report mode, a new tab opens with the HTML report.</div>
+        <div class="card" style="padding:16px;">
+          <div style="font-weight:700; margin-bottom:10px;">Output (Summary JSON/Text or Report status)</div>
+          <textarea id="txtOutput" placeholder="Output will appear here..."></textarea>
+          <div class="smallNote" id="reportHint">For Report mode, a new tab opens with the HTML report. PDF button downloads it directly.</div>
         </div>
       </div>
     </div>
   </div>
 
-  <script>
-    // ✅ IMPORTANT: keep only ONE API_BASE (avoid “already been declared”)
-    const API_BASE = "https://caresummary-api-feerbpb5b8gwf6cf.westeurope-01.azurewebsites.net/api";
-
-    // Elements
-    const el = (id) => document.getElementById(id);
-    const speechLang = el("speechLang");
-    const outputMode = el("outputMode");
-    const summaryFormat = el("summaryFormat");
-    const patientId = el("patientId");
-    const reportTemplate = el("reportTemplate");
-    const reportLang = el("reportLang");
-
-    const btnTest = el("btnTest");
-    const btnStart = el("btnStart");
-    const btnStop = el("btnStop");
-    const btnGenerate = el("btnGenerate");
-    const btnClear = el("btnClear");
-    const btnCopyTranscript = el("btnCopyTranscript");
-    const btnCopyOutput = el("btnCopyOutput");
-    const btnPdf = el("btnPdf");
-
-    const transcript = el("transcript");
-    const output = el("output");
-    const chkSave = el("chkSave");
-
-    const dot = el("dot");
-    const statusText = el("statusText");
-    const apiBaseLine = el("apiBaseLine");
-    const outFoot = el("outFoot");
-
-    // State
-    let recognizer = null;
-    let lastReportHtml = "";
-    let lastReportPayload = null;
-
-    apiBaseLine.textContent = `API_BASE = ${API_BASE}`;
-
-    function setStatus(message, level="info") {
-      statusText.textContent = message;
-      dot.classList.remove("good","warn","bad");
-      if (level === "good") dot.classList.add("good");
-      if (level === "warn") dot.classList.add("warn");
-      if (level === "bad") dot.classList.add("bad");
-    }
-
-    function saveLocal() {
-      if (!chkSave.checked) return;
-      const data = {
-        speechLang: speechLang.value,
-        outputMode: outputMode.value,
-        summaryFormat: summaryFormat.value,
-        patientId: patientId.value,
-        reportTemplate: reportTemplate.value,
-        reportLang: reportLang.value,
-        transcript: transcript.value,
-        output: output.value
-      };
-      localStorage.setItem("caresummary_state", JSON.stringify(data));
-    }
-
-    function loadLocal() {
-      try {
-        const raw = localStorage.getItem("caresummary_state");
-        if (!raw) return;
-        const data = JSON.parse(raw);
-        speechLang.value = data.speechLang || speechLang.value;
-        outputMode.value = data.outputMode || outputMode.value;
-        summaryFormat.value = data.summaryFormat || summaryFormat.value;
-        patientId.value = data.patientId || "";
-        reportTemplate.value = data.reportTemplate || reportTemplate.value;
-        reportLang.value = data.reportLang || reportLang.value;
-        transcript.value = data.transcript || "";
-        output.value = data.output || "";
-      } catch { /* ignore */ }
-    }
-
-    // Small helper: fetch with timeout + better error text
-    async function apiFetch(path, { method="GET", body=null, headers={} } = {}, timeoutMs=30000) {
-      const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), timeoutMs);
-
-      try {
-        const res = await fetch(`${API_BASE}${path}`, {
-          method,
-          headers: {
-            ...(body ? {"Content-Type":"application/json"} : {}),
-            ...headers
-          },
-          body: body ? JSON.stringify(body) : null,
-          signal: controller.signal
-        });
-
-        const ct = res.headers.get("content-type") || "";
-        const text = await res.text();
-        let parsed = null;
-        if (ct.includes("application/json")) {
-          try { parsed = JSON.parse(text); } catch { parsed = null; }
-        }
-
-        if (!res.ok) {
-          const msg = parsed?.error || parsed?.message || text || `HTTP ${res.status}`;
-          throw new Error(`${path} failed (${res.status}): ${typeof parsed === "object" ? JSON.stringify(parsed, null, 2) : msg}`);
-        }
-
-        return { res, text, json: parsed };
-      } finally {
-        clearTimeout(t);
-      }
-    }
-
-    // ✅ GET /speechToken (NO transcript body)
-    async function getSpeechToken() {
-      const { json } = await apiFetch("/speechToken", { method:"GET" });
-      if (!json?.token || !json?.region) throw new Error("speechToken response missing token/region");
-      return json;
-    }
-
-    async function testApi() {
-      try {
-        setStatus("Testing /speechToken ...", "warn");
-        const tok = await getSpeechToken();
-        // Don’t dump the whole token by default (keeps UI clean)
-        output.value = JSON.stringify({ ok:true, region: tok.region, tokenPreview: tok.token.slice(0, 24) + "..." }, null, 2);
-        setStatus("Speech token OK.", "good");
-        saveLocal();
-      } catch (e) {
-        output.value = String(e);
-        setStatus("Test API failed. Check CORS / route / logs.", "bad");
-        saveLocal();
-      }
-    }
-
-    async function startRecording() {
-      try {
-        if (!window.SpeechSDK) throw new Error("SpeechSDK not loaded. Check script include.");
-        setStatus("Fetching Speech token ...", "warn");
-
-        const tok = await getSpeechToken();
-        setStatus("Starting microphone ...", "warn");
-
-        const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(tok.token, tok.region);
-        speechConfig.speechRecognitionLanguage = speechLang.value;
-
-        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-        recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-
-        btnStart.disabled = true;
-        btnStop.disabled = false;
-
-        let fullText = transcript.value ? transcript.value.trim() + "\n" : "";
-
-        recognizer.recognized = (s, e) => {
-          if (e.result && e.result.text) {
-            fullText += e.result.text + "\n";
-            transcript.value = fullText;
-            saveLocal();
-          }
-        };
-
-        recognizer.canceled = (s, e) => {
-          setStatus("Recording canceled. Check mic permissions.", "bad");
-          stopRecording();
-        };
-
-        recognizer.sessionStopped = () => {
-          stopRecording();
-        };
-
-        recognizer.startContinuousRecognitionAsync(
-          () => setStatus("Recording... speak now.", "good"),
-          (err) => { throw new Error(err); }
-        );
-      } catch (e) {
-        setStatus("Start recording failed.", "bad");
-        output.value = String(e);
-        btnStart.disabled = false;
-        btnStop.disabled = true;
-        recognizer = null;
-        saveLocal();
-      }
-    }
-
-    function stopRecording() {
-      try {
-        if (recognizer) {
-          recognizer.stopContinuousRecognitionAsync(() => {
-            recognizer.close();
-            recognizer = null;
-          }, () => {
-            try { recognizer.close(); } catch {}
-            recognizer = null;
-          });
-        }
-      } finally {
-        btnStart.disabled = false;
-        btnStop.disabled = true;
-        setStatus("Stopped.", "info");
-        saveLocal();
-      }
-    }
-
-    async function generateSummary(noteText, fmt, pid) {
-      const body = {
-        note: noteText,
-        format: fmt,
-        patientId: pid || ""
-      };
-      const { json, text } = await apiFetch("/SummarizeNote", { method:"POST", body });
-      // Some versions return JSON, others return string — handle both
-      return json ?? text;
-    }
-
-    async function generateReportHtml(transcriptText, pid, template, lang) {
-      const body = {
-        transcript: transcriptText,
-        patientId: pid || "",
-        template: template,
-        language: lang
-      };
-      const { text } = await apiFetch("/RenderReport", { method:"POST", body });
-      return text; // HTML
-    }
-
-    function openReportTab(html) {
-      const w = window.open("", "_blank");
-      if (!w) throw new Error("Popup blocked. Allow popups for this site to open the report tab.");
-      w.document.open();
-      w.document.write(html);
-      w.document.close();
-    }
-
-    async function generate() {
-      try {
-        btnPdf.disabled = true;
-        lastReportHtml = "";
-        lastReportPayload = null;
-
-        const mode = outputMode.value;
-        const pid = patientId.value.trim();
-        const t = transcript.value.trim();
-
-        if (!t) {
-          setStatus("Transcript is empty. Record or paste text first.", "warn");
-          return;
-        }
-
-        setStatus("Generating...", "warn");
-        output.value = "";
-
-        if (mode === "summary" || mode === "both") {
-          const sum = await generateSummary(t, summaryFormat.value, pid);
-          output.value = typeof sum === "string" ? sum : JSON.stringify(sum, null, 2);
-          setStatus("Summary generated.", "good");
-        }
-
-        if (mode === "report" || mode === "both") {
-          const html = await generateReportHtml(t, pid, reportTemplate.value, reportLang.value);
-          lastReportHtml = html;
-          lastReportPayload = { transcript: t, patientId: pid, template: reportTemplate.value, language: reportLang.value };
-
-          openReportTab(html);
-          btnPdf.disabled = false;
-
-          if (mode === "report") {
-            output.value = "Report opened in a new tab (HTML).";
-          } else {
-            output.value += "\n\n---\nReport opened in a new tab (HTML).";
-          }
-          setStatus("Report generated.", "good");
-        }
-
-        saveLocal();
-      } catch (e) {
-        output.value = String(e);
-        setStatus("Generate failed. Check Function logs + route/CORS.", "bad");
-        saveLocal();
-      }
-    }
-
-    async function downloadPdf() {
-      try {
-        if (!lastReportPayload) {
-          setStatus("No report payload yet. Generate a report first.", "warn");
-          return;
-        }
-
-        setStatus("Downloading PDF...", "warn");
-
-        // Preferred: backend PDF endpoint
-        try {
-          const r = await fetch(`${API_BASE}/RenderReportPdf`, {
-            method: "POST",
-            headers: {"Content-Type":"application/json"},
-            body: JSON.stringify(lastReportPayload)
-          });
-
-          if (!r.ok) throw new Error(`RenderReportPdf failed (${r.status})`);
-
-          const blob = await r.blob();
-          const url = URL.createObjectURL(blob);
-
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `CareSummary_Report_${(lastReportPayload.patientId || "demo")}.pdf`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          URL.revokeObjectURL(url);
-
-          setStatus("PDF downloaded.", "good");
-          return;
-        } catch {
-          // Fallback: open HTML and let user print/save as PDF
-          if (!lastReportHtml) throw new Error("No report HTML available to print.");
-          openReportTab(lastReportHtml);
-          setStatus("Opened HTML report. Use Print → Save as PDF.", "good");
-        }
-      } catch (e) {
-        output.value = String(e);
-        setStatus("PDF failed.", "bad");
-      }
-    }
-
-    function clearAll() {
-      transcript.value = "";
-      output.value = "";
-      lastReportHtml = "";
-      lastReportPayload = null;
-      btnPdf.disabled = true;
-      setStatus("Cleared.", "info");
-      saveLocal();
-    }
-
-    async function copyText(text) {
-      await navigator.clipboard.writeText(text);
-      setStatus("Copied.", "good");
-    }
-
-    // UI events
-    btnTest.addEventListener("click", testApi);
-    btnStart.addEventListener("click", startRecording);
-    btnStop.addEventListener("click", stopRecording);
-    btnGenerate.addEventListener("click", generate);
-    btnClear.addEventListener("click", clearAll);
-    btnCopyTranscript.addEventListener("click", () => copyText(transcript.value || ""));
-    btnCopyOutput.addEventListener("click", () => copyText(output.value || ""));
-    btnPdf.addEventListener("click", downloadPdf);
-
-    // Save on changes
-    [speechLang, outputMode, summaryFormat, patientId, reportTemplate, reportLang, transcript, output, chkSave].forEach(x => {
-      x.addEventListener("change", saveLocal);
-      x.addEventListener("input", saveLocal);
-    });
-
-    outputMode.addEventListener("change", () => {
-      if (outputMode.value === "report") {
-        outFoot.textContent = "For Report mode, a new tab opens with the HTML report. PDF button downloads it if RenderReportPdf exists.";
-      } else if (outputMode.value === "summary") {
-        outFoot.textContent = "Summary will appear here as JSON/Text.";
-      } else {
-        outFoot.textContent = "Both: Summary appears here, and Report opens in a new tab.";
-      }
-    });
-
-    // Init
-    loadLocal();
-    outputMode.dispatchEvent(new Event("change"));
-    setStatus("Ready.", "info");
-  </script>
-</body>
-</html>
+<script>
+  //
