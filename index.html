@@ -5,251 +5,253 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>CareSummary (Demo)</title>
 
-  <!-- Azure Speech SDK (browser) -->
-  <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
-
-  <!-- HTML -> PDF (client-side) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- Speech SDK (browser bundle) -->
+  <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@1.38.0/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle-min.js"></script>
 
   <style>
     :root{
-      --bg1:#050a1a;
-      --bg2:#0b163a;
-      --card:#0b1630cc;
-      --card2:#0a1430aa;
-      --border:#1b2a55;
-      --text:#e8eeff;
-      --muted:#9fb2e6;
-      --accent:#6aa0ff;
-      --good:#42d392;
-      --bad:#ff5e6c;
-      --btn:#0e2457;
-      --btn2:#0b1e46;
-      --shadow:0 18px 60px rgba(0,0,0,.45);
-      --radius:18px;
+      --bg1:#070b1a; --bg2:#0b1230; --card:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.08);
+      --text:#eaf0ff; --muted:rgba(234,240,255,.75);
+      --stroke:rgba(255,255,255,.10);
+      --good:#39d98a; --warn:#ffd166; --bad:#ff5c7a;
+      --btn:#1f5eff; --btn2:#1b2a5a;
+      --radius:16px;
     }
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", sans-serif;
       color:var(--text);
-      background:
-        radial-gradient(1200px 600px at 20% 10%, #1a2e7a55, transparent 60%),
-        radial-gradient(900px 500px at 85% 30%, #4c2ba355, transparent 55%),
-        linear-gradient(180deg, var(--bg1), var(--bg2));
+      background: radial-gradient(1200px 600px at 20% 0%, #182a7a33 0%, transparent 55%),
+                  radial-gradient(900px 500px at 90% 20%, #7a1a7a33 0%, transparent 55%),
+                  linear-gradient(180deg,var(--bg1),var(--bg2));
       min-height:100vh;
       padding:28px;
     }
     .wrap{max-width:1180px;margin:0 auto}
-    .titlebar{
-      display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
-      margin-bottom:10px;
-    }
+    .titleRow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
     h1{margin:0;font-size:34px;letter-spacing:.2px}
     .pill{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:5px 10px;border-radius:999px;
-      background:#10255a; border:1px solid #27438b;
-      color:#cfe0ff; font-size:12px; font-weight:600;
-    }
-    .subtitle{
-      margin:6px 0 18px;
+      font-size:12px;
+      padding:6px 10px;
+      border:1px solid var(--stroke);
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
       color:var(--muted);
-      line-height:1.45;
     }
-    .grid{
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
+    .sub{
+      margin-top:6px;
+      color:var(--muted);
+      line-height:1.35;
+    }
+    .card{
+      margin-top:18px;
       padding:18px;
+      border:1px solid var(--stroke);
+      border-radius:var(--radius);
+      background:linear-gradient(180deg,var(--card),rgba(255,255,255,.03));
+      box-shadow: 0 10px 50px rgba(0,0,0,.35);
     }
-    .controls{
+    .grid4{
       display:grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr;
-      gap:14px;
-      margin-bottom:12px;
+      grid-template-columns: 220px 240px 240px 1fr;
+      gap:12px;
     }
-    @media (max-width: 980px){
-      .controls{grid-template-columns: 1fr 1fr}
-    }
-    @media (max-width: 620px){
-      .controls{grid-template-columns: 1fr}
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:16px;
+      margin-top:16px;
     }
     label{
       display:block;
-      color:#c8d7ff;
       font-size:12px;
-      margin-bottom:7px;
-      opacity:.95;
+      color:var(--muted);
+      margin-bottom:6px;
     }
-    select,input{
+    select,input[type="text"]{
       width:100%;
-      background: #07142e;
-      color: var(--text);
-      border:1px solid var(--border);
-      border-radius: 12px;
-      padding:12px 12px;
+      height:40px;
+      border-radius:12px;
+      border:1px solid var(--stroke);
+      background:rgba(0,0,0,.22);
+      color:var(--text);
+      padding:0 12px;
       outline:none;
-      box-shadow: inset 0 0 0 1px rgba(0,0,0,.12);
     }
-    input::placeholder{color:#7f93c8}
-    .row2{
+    select:focus,input[type="text"]:focus{border-color:rgba(95,135,255,.6)}
+    .grid2small{
       display:grid;
       grid-template-columns: 1fr 1fr;
-      gap:14px;
-      margin-bottom:14px;
+      gap:12px;
+      margin-top:10px;
     }
-    @media (max-width: 980px){
-      .row2{grid-template-columns:1fr}
-    }
-    .btnbar{
-      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
-      margin:10px 0 10px;
+    .btnRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:14px;
+      align-items:center;
     }
     button{
-      background: linear-gradient(180deg, var(--btn), var(--btn2));
-      color: var(--text);
-      border:1px solid #29407f;
-      border-radius: 14px;
-      padding:11px 14px;
-      font-weight:700;
+      border:1px solid var(--stroke);
+      background:rgba(0,0,0,.18);
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:14px;
       cursor:pointer;
-      box-shadow: 0 10px 30px rgba(0,0,0,.25);
-      transition: transform .06s ease, opacity .2s ease;
+      font-weight:600;
+      letter-spacing:.2px;
     }
-    button:hover{transform: translateY(-1px)}
-    button:disabled{opacity:.45; cursor:not-allowed; transform:none}
-    .danger{border-color:#7b2a35;background: linear-gradient(180deg,#3a1620,#2a0f18)}
-    .ghost{background: transparent;border-color:#2d3d71}
-    .accent{border-color:#2f5fd6;background: linear-gradient(180deg,#1740a6,#102a6d)}
-    .status{
-      display:flex; align-items:center; gap:10px;
-      margin-top:8px;
+    button.primary{
+      background:linear-gradient(180deg, rgba(31,94,255,.95), rgba(31,94,255,.55));
+      border-color:rgba(31,94,255,.5);
+    }
+    button.danger{
+      background:linear-gradient(180deg, rgba(255,92,122,.25), rgba(255,92,122,.12));
+      border-color:rgba(255,92,122,.35);
+    }
+    button:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+    }
+    .statusBar{
+      margin-top:12px;
+      display:flex;
+      align-items:center;
+      gap:10px;
       padding:10px 12px;
-      border-radius: 14px;
-      background: rgba(5,10,26,.55);
-      border:1px solid var(--border);
-      color: var(--muted);
-      min-height: 46px;
+      border-radius:14px;
+      border:1px solid var(--stroke);
+      background:rgba(0,0,0,.18);
+      color:var(--muted);
     }
     .dot{
       width:10px;height:10px;border-radius:50%;
-      background:#556aa3;
-      box-shadow: 0 0 0 3px rgba(85,106,163,.15);
-      flex:0 0 auto;
+      background:rgba(255,255,255,.25);
+      box-shadow:0 0 0 4px rgba(255,255,255,.06);
     }
-    .dot.good{background:var(--good); box-shadow:0 0 0 3px rgba(66,211,146,.15)}
-    .dot.bad{background:var(--bad); box-shadow:0 0 0 3px rgba(255,94,108,.15)}
-    .small{
+    .dot.good{background:var(--good); box-shadow:0 0 0 4px rgba(57,217,138,.14)}
+    .dot.warn{background:var(--warn); box-shadow:0 0 0 4px rgba(255,209,102,.14)}
+    .dot.bad{background:var(--bad); box-shadow:0 0 0 4px rgba(255,92,122,.14)}
+    .help{
       margin-top:10px;
-      color:#93a8e3;
+      color:rgba(160,175,255,.85);
       font-size:12px;
-      line-height:1.4;
+      line-height:1.35;
     }
-    .panes{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:14px;
-      margin-top:14px;
-    }
-    @media (max-width: 980px){
-      .panes{grid-template-columns:1fr}
-    }
-    .pane{
-      background: rgba(5,10,26,.45);
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      padding:14px;
-      box-shadow: 0 12px 40px rgba(0,0,0,.25);
-    }
-    .pane h3{
-      margin:0 0 10px;
-      font-size:14px;
-      color:#cfe0ff;
-      letter-spacing:.2px;
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size:12px;
+      color:rgba(234,240,255,.78);
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--stroke);
+      background:rgba(0,0,0,.16);
+      overflow:auto;
+      white-space:nowrap;
     }
     textarea{
       width:100%;
-      min-height: 260px;
-      resize: vertical;
-      background:#06122a;
-      border:1px solid var(--border);
-      border-radius: 14px;
-      padding:12px;
+      min-height:260px;
+      resize:vertical;
+      border-radius:14px;
+      border:1px solid var(--stroke);
+      background:rgba(0,0,0,.20);
       color:var(--text);
-      line-height:1.5;
+      padding:12px;
       outline:none;
-    }
-    .api-line{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
       font-size:12px;
-      color:#a9beff;
-      opacity:.9;
-      margin-top:6px;
-      word-break: break-all;
+      line-height:1.4;
     }
-    .hint{
+    .boxTitle{
+      font-weight:800;
+      margin:0 0 10px 0;
+      color:rgba(200,215,255,.95);
+      font-size:13px;
+      letter-spacing:.2px;
+    }
+    .foot{
       margin-top:10px;
+      color:var(--muted);
       font-size:12px;
-      color:#9fb2e6;
+    }
+    .rowRight{
+      margin-left:auto;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .checkbox{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:var(--muted);
+      font-size:12px;
+      user-select:none;
+    }
+    .checkbox input{transform: translateY(1px);}
+    @media (max-width: 980px){
+      .grid4{grid-template-columns:1fr 1fr}
+      .grid2{grid-template-columns:1fr}
     }
   </style>
 </head>
 
 <body>
   <div class="wrap">
-    <div class="titlebar">
+    <div class="titleRow">
       <h1>CareSummary (Demo)</h1>
       <span class="pill">School project</span>
     </div>
-
-    <div class="subtitle">
-      Demo: record speech → transcribe (Azure Speech) → Summary/Report via Azure Function + Foundry model.<br>
+    <div class="sub">
+      Demo: record speech → transcribe (Azure Speech) → Summary/Report via Azure Function + Foundry model.<br/>
       <strong>Do not use real patient data.</strong>
     </div>
 
-    <div class="grid">
-      <div class="controls">
+    <div class="card">
+      <div class="grid4">
         <div>
           <label for="speechLang">Speech language</label>
           <select id="speechLang">
-            <option value="sv-SE" selected>Swedish – sv-SE</option>
-            <option value="en-US">English (US) – en-US</option>
-            <option value="ar-EG">Arabic (Egypt) – ar-EG</option>
+            <option value="sv-SE">Swedish — sv-SE</option>
+            <option value="en-US">English (US) — en-US</option>
           </select>
         </div>
 
         <div>
           <label for="outputMode">Output</label>
           <select id="outputMode">
-            <option value="summary" selected>Summary (JSON/Text)</option>
-            <option value="report">Report (HTML template)</option>
+            <option value="summary">Summary (JSON/Text)</option>
+            <option value="report" selected>Report (HTML template)</option>
+            <option value="both">Both (Summary + Report)</option>
           </select>
         </div>
 
         <div>
-          <label for="noteFormat">Note format (Summary)</label>
-          <select id="noteFormat">
+          <label for="summaryFormat">Note format (Summary)</label>
+          <select id="summaryFormat">
             <option value="SOAP" selected>SOAP</option>
             <option value="SBAR">SBAR</option>
-            <option value="Narrative">Narrative</option>
             <option value="Bullet summary">Bullet summary</option>
           </select>
         </div>
 
         <div>
           <label for="patientId">Patient ID (demo)</label>
-          <input id="patientId" placeholder="Example: P-001 (optional)" />
+          <input id="patientId" type="text" placeholder="Example: P-001 (optional)" />
         </div>
       </div>
 
-      <div class="row2">
+      <div class="grid2small">
         <div>
           <label for="reportTemplate">Rapportmall (Report)</label>
           <select id="reportTemplate">
-            <option value="Journalanteckning_enkel" selected>Journalanteckning (enkel)</option>
-            <option value="SBAR_enkel">SBAR (enkel)</option>
+            <option value="Journalanteckning">Journalanteckning (enkel)</option>
+            <option value="SBAR" selected>SBAR (enkel)</option>
           </select>
         </div>
 
@@ -262,422 +264,425 @@
         </div>
       </div>
 
-      <div class="btnbar">
-        <button class="ghost" id="btnTest">🧪 Test API</button>
-        <button class="accent" id="btnStart">🎙️ Start recording</button>
+      <div class="btnRow">
+        <button id="btnTest" title="Calls GET /speechToken">🧪 Test API</button>
+        <button class="primary" id="btnStart">🎙️ Start recording</button>
         <button id="btnStop" disabled>⏹️ Stop</button>
-        <button class="accent" id="btnGenerate">✨ Generate</button>
+
+        <button class="primary" id="btnGenerate">✨ Generate</button>
         <button class="danger" id="btnClear">🧹 Clear</button>
-        <button class="ghost" id="btnCopyTranscript">📋 Copy transcript</button>
-        <button class="ghost" id="btnCopyOutput">📋 Copy output</button>
-        <button class="ghost" id="btnPdf" disabled>⬇️ Download PDF</button>
-        <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#cfe0ff;margin-left:auto;">
-          <input id="saveLocal" type="checkbox" style="width:auto;accent-color:#6aa0ff;" />
-          Spara lokalt (demo)
-        </label>
+
+        <button id="btnCopyTranscript">📋 Copy transcript</button>
+        <button id="btnCopyOutput">📋 Copy output</button>
+
+        <button id="btnPdf" disabled>⬇️ Download PDF</button>
+
+        <div class="rowRight">
+          <label class="checkbox">
+            <input type="checkbox" id="chkSave" checked />
+            Spara lokalt (demo)
+          </label>
+        </div>
       </div>
 
-      <div class="status">
-        <div id="statusDot" class="dot"></div>
+      <div class="statusBar">
+        <span id="dot" class="dot"></span>
         <div id="statusText">Ready.</div>
       </div>
 
-      <div class="api-line" id="apiLine"></div>
+      <div class="mono" id="apiBaseLine"></div>
 
-      <div class="small">
-        Summary uses <code>POST /SummarizeNote</code> (SOAP/SBAR supported).<br>
-        Report uses <code>POST /RenderReport</code> and opens a new tab with the HTML report (you can print/save as PDF too).
+      <div class="help">
+        Summary uses <code>POST /SummarizeNote</code> (SOAP/SBAR supported).<br/>
+        Report uses <code>POST /RenderReport</code> and opens a new tab with the HTML report (you can print/save as PDF too).<br/>
+        PDF button tries <code>POST /RenderReportPdf</code> (if you added that function) otherwise falls back to opening HTML.
       </div>
 
-      <div class="panes">
-        <div class="pane">
-          <h3>Transcript (what was said)</h3>
-          <textarea id="transcript" placeholder="Press Start recording and speak…"></textarea>
-          <div class="hint">You can edit the transcript before generating.</div>
+      <div class="grid2">
+        <div>
+          <div class="boxTitle">Transcript (what was said)</div>
+          <textarea id="transcript" placeholder="Press Start recording and speak..."></textarea>
+          <div class="foot">You can edit the transcript before generating.</div>
         </div>
 
-        <div class="pane">
-          <h3>Output (Summary JSON/Text or Report status)</h3>
-          <textarea id="output" placeholder="Press Generate…"></textarea>
-          <div class="hint" id="reportHint" style="display:none;">
-            For Report mode, a new tab opens with the HTML report. PDF button downloads it directly.
-          </div>
+        <div>
+          <div class="boxTitle">Output (Summary JSON/Text or Report status)</div>
+          <textarea id="output" placeholder="Press Generate to produce a summary or report..."></textarea>
+          <div class="foot" id="outFoot">For Report mode, a new tab opens with the HTML report.</div>
         </div>
       </div>
     </div>
   </div>
 
-<script>
-/**
- * ✅ IMPORTANT:
- * This must point to your Function App base URL (with /api).
- */
-const API_BASE = "https://caresummary-api-feerbpb5b8gwf6cf.westeurope-01.azurewebsites.net/api";
+  <script>
+    // ✅ IMPORTANT: keep only ONE API_BASE (avoid “already been declared”)
+    const API_BASE = "https://caresummary-api-feerbpb5b8gwf6cf.westeurope-01.azurewebsites.net/api";
 
-/**
- * Optional: if you ever switch Functions auth to "Function",
- * paste your function key here. Leave empty for Anonymous.
- */
-const FUNCTION_CODE = ""; // e.g. "abcd1234..."
-const withCode = (url) => FUNCTION_CODE ? `${url}${url.includes("?") ? "&" : "?"}code=${encodeURIComponent(FUNCTION_CODE)}` : url;
+    // Elements
+    const el = (id) => document.getElementById(id);
+    const speechLang = el("speechLang");
+    const outputMode = el("outputMode");
+    const summaryFormat = el("summaryFormat");
+    const patientId = el("patientId");
+    const reportTemplate = el("reportTemplate");
+    const reportLang = el("reportLang");
 
-// Expose for debugging without redeclaring in console:
-window.CareSummary = { API_BASE };
+    const btnTest = el("btnTest");
+    const btnStart = el("btnStart");
+    const btnStop = el("btnStop");
+    const btnGenerate = el("btnGenerate");
+    const btnClear = el("btnClear");
+    const btnCopyTranscript = el("btnCopyTranscript");
+    const btnCopyOutput = el("btnCopyOutput");
+    const btnPdf = el("btnPdf");
 
-const el = (id) => document.getElementById(id);
-const statusDot = el("statusDot");
-const statusText = el("statusText");
-const transcriptEl = el("transcript");
-const outputEl = el("output");
+    const transcript = el("transcript");
+    const output = el("output");
+    const chkSave = el("chkSave");
 
-el("apiLine").textContent = `API_BASE = ${API_BASE}`;
+    const dot = el("dot");
+    const statusText = el("statusText");
+    const apiBaseLine = el("apiBaseLine");
+    const outFoot = el("outFoot");
 
-let recognizer = null;
-let lastReportHTML = "";
-let lastReportTitle = "Report";
+    // State
+    let recognizer = null;
+    let lastReportHtml = "";
+    let lastReportPayload = null;
 
-// ---- UI helpers ----
-function setStatus(kind, msg){
-  statusDot.classList.remove("good","bad");
-  if (kind === "good") statusDot.classList.add("good");
-  if (kind === "bad") statusDot.classList.add("bad");
-  statusText.textContent = msg;
-}
+    apiBaseLine.textContent = `API_BASE = ${API_BASE}`;
 
-function enableRecordingUI(isRecording){
-  el("btnStart").disabled = isRecording;
-  el("btnStop").disabled = !isRecording;
-}
-
-function isReportMode(){
-  return el("outputMode").value === "report";
-}
-
-function syncModeUI(){
-  const reportMode = isReportMode();
-  el("noteFormat").disabled = reportMode;
-  el("reportTemplate").disabled = !reportMode;
-  el("reportLang").disabled = !reportMode;
-  el("reportHint").style.display = reportMode ? "block" : "none";
-}
-el("outputMode").addEventListener("change", syncModeUI);
-syncModeUI();
-
-// ---- localStorage (demo) ----
-const LS_KEY = "caresummary_demo_state_v1";
-function loadLocal(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return;
-    const s = JSON.parse(raw);
-    if (s.transcript) transcriptEl.value = s.transcript;
-    if (s.output) outputEl.value = s.output;
-    if (s.patientId) el("patientId").value = s.patientId;
-    if (s.speechLang) el("speechLang").value = s.speechLang;
-    if (s.outputMode) el("outputMode").value = s.outputMode;
-    if (s.noteFormat) el("noteFormat").value = s.noteFormat;
-    if (s.reportTemplate) el("reportTemplate").value = s.reportTemplate;
-    if (s.reportLang) el("reportLang").value = s.reportLang;
-    if (s.saveLocal) el("saveLocal").checked = true;
-    syncModeUI();
-  }catch{}
-}
-function saveLocal(){
-  if(!el("saveLocal").checked) return;
-  const s = {
-    transcript: transcriptEl.value,
-    output: outputEl.value,
-    patientId: el("patientId").value,
-    speechLang: el("speechLang").value,
-    outputMode: el("outputMode").value,
-    noteFormat: el("noteFormat").value,
-    reportTemplate: el("reportTemplate").value,
-    reportLang: el("reportLang").value,
-    saveLocal: true
-  };
-  localStorage.setItem(LS_KEY, JSON.stringify(s));
-}
-el("saveLocal").addEventListener("change", () => {
-  if (!el("saveLocal").checked) localStorage.removeItem(LS_KEY);
-  else saveLocal();
-});
-["input","change"].forEach(evt=>{
-  document.addEventListener(evt, (e)=>{
-    if(["transcript","output","patientId","speechLang","outputMode","noteFormat","reportTemplate","reportLang"].includes(e.target?.id)){
-      saveLocal();
+    function setStatus(message, level="info") {
+      statusText.textContent = message;
+      dot.classList.remove("good","warn","bad");
+      if (level === "good") dot.classList.add("good");
+      if (level === "warn") dot.classList.add("warn");
+      if (level === "bad") dot.classList.add("bad");
     }
-  });
-});
-loadLocal();
 
-// ---- API calls ----
+    function saveLocal() {
+      if (!chkSave.checked) return;
+      const data = {
+        speechLang: speechLang.value,
+        outputMode: outputMode.value,
+        summaryFormat: summaryFormat.value,
+        patientId: patientId.value,
+        reportTemplate: reportTemplate.value,
+        reportLang: reportLang.value,
+        transcript: transcript.value,
+        output: output.value
+      };
+      localStorage.setItem("caresummary_state", JSON.stringify(data));
+    }
 
-/**
- * ✅ speechToken MUST be GET and MUST NOT send transcript/body.
- * Returns: { token, region }
- */
-async function fetchSpeechToken(){
-  const url = withCode(`${API_BASE}/speechToken`);
-  const r = await fetch(url, { method:"GET" });
-  const txt = await r.text();
-  if(!r.ok) throw new Error(`/speechToken failed (${r.status}): ${txt}`);
-  return JSON.parse(txt);
-}
+    function loadLocal() {
+      try {
+        const raw = localStorage.getItem("caresummary_state");
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        speechLang.value = data.speechLang || speechLang.value;
+        outputMode.value = data.outputMode || outputMode.value;
+        summaryFormat.value = data.summaryFormat || summaryFormat.value;
+        patientId.value = data.patientId || "";
+        reportTemplate.value = data.reportTemplate || reportTemplate.value;
+        reportLang.value = data.reportLang || reportLang.value;
+        transcript.value = data.transcript || "";
+        output.value = data.output || "";
+      } catch { /* ignore */ }
+    }
 
-async function postJson(path, payload){
-  const url = withCode(`${API_BASE}${path.startsWith("/") ? "" : "/"}${path}`);
-  const r = await fetch(url, {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify(payload)
-  });
-  const ct = r.headers.get("content-type") || "";
-  const bodyText = await r.text();
-  if(!r.ok) throw new Error(`${path} failed (${r.status}): ${bodyText}`);
-  if (ct.includes("application/json")){
-    try{ return JSON.parse(bodyText); }catch{ return bodyText; }
-  }
-  return bodyText; // e.g. HTML from RenderReport
-}
+    // Small helper: fetch with timeout + better error text
+    async function apiFetch(path, { method="GET", body=null, headers={} } = {}, timeoutMs=30000) {
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), timeoutMs);
 
-// ---- Speech recording ----
-async function startRecording(){
-  try{
-    setStatus("", "Fetching Speech token…");
-    const { token, region } = await fetchSpeechToken();
+      try {
+        const res = await fetch(`${API_BASE}${path}`, {
+          method,
+          headers: {
+            ...(body ? {"Content-Type":"application/json"} : {}),
+            ...headers
+          },
+          body: body ? JSON.stringify(body) : null,
+          signal: controller.signal
+        });
 
-    const speechLang = el("speechLang").value;
-
-    const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
-    speechConfig.speechRecognitionLanguage = speechLang;
-
-    const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-    recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-
-    let finalText = "";
-    setStatus("", "Recording… speak now.");
-    enableRecordingUI(true);
-
-    recognizer.recognizing = (_s, e) => {
-      if (e.result && e.result.text){
-        transcriptEl.value = (finalText ? finalText + "\n" : "") + e.result.text;
-      }
-    };
-
-    recognizer.recognized = (_s, e) => {
-      if (e.result && e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech){
-        if (e.result.text){
-          finalText += (finalText ? "\n" : "") + e.result.text;
-          transcriptEl.value = finalText;
-          saveLocal();
+        const ct = res.headers.get("content-type") || "";
+        const text = await res.text();
+        let parsed = null;
+        if (ct.includes("application/json")) {
+          try { parsed = JSON.parse(text); } catch { parsed = null; }
         }
+
+        if (!res.ok) {
+          const msg = parsed?.error || parsed?.message || text || `HTTP ${res.status}`;
+          throw new Error(`${path} failed (${res.status}): ${typeof parsed === "object" ? JSON.stringify(parsed, null, 2) : msg}`);
+        }
+
+        return { res, text, json: parsed };
+      } finally {
+        clearTimeout(t);
       }
-    };
-
-    recognizer.canceled = (_s, e) => {
-      setStatus("bad", `Speech canceled: ${e.errorDetails || e.reason}`);
-      stopRecording();
-    };
-
-    recognizer.sessionStopped = () => {
-      stopRecording();
-    };
-
-    recognizer.startContinuousRecognitionAsync();
-  }catch(err){
-    setStatus("bad", err.message || String(err));
-    enableRecordingUI(false);
-  }
-}
-
-function stopRecording(){
-  if(!recognizer){
-    enableRecordingUI(false);
-    return;
-  }
-  try{
-    recognizer.stopContinuousRecognitionAsync(
-      () => {
-        recognizer.close();
-        recognizer = null;
-        enableRecordingUI(false);
-        setStatus("good", "Recording stopped.");
-      },
-      (err) => {
-        recognizer = null;
-        enableRecordingUI(false);
-        setStatus("bad", `Stop failed: ${err}`);
-      }
-    );
-  }catch(e){
-    recognizer = null;
-    enableRecordingUI(false);
-  }
-}
-
-// ---- Generate (Summary or Report) ----
-async function generate(){
-  try{
-    const patientId = el("patientId").value.trim();
-    const transcript = transcriptEl.value.trim();
-
-    el("btnPdf").disabled = true;
-    lastReportHTML = "";
-    lastReportTitle = "Report";
-
-    if(!transcript){
-      setStatus("bad", "Transcript is empty. Record or paste text first.");
-      return;
     }
 
-    outputEl.value = "";
-    setStatus("", "Generating…");
-
-    if (!isReportMode()){
-      // Summary
-      const format = el("noteFormat").value;
-      const payload = { note: transcript, format, patientId };
-      const res = await postJson("/SummarizeNote", payload);
-
-      outputEl.value = (typeof res === "string") ? res : JSON.stringify(res, null, 2);
-      setStatus("good", "Summary generated.");
-      saveLocal();
-      return;
+    // ✅ GET /speechToken (NO transcript body)
+    async function getSpeechToken() {
+      const { json } = await apiFetch("/speechToken", { method:"GET" });
+      if (!json?.token || !json?.region) throw new Error("speechToken response missing token/region");
+      return json;
     }
 
-    // Report
-    const template = el("reportTemplate").value;
-    const language = el("reportLang").value; // "sv" or "en"
-    const payload = { transcript, patientId, template, language };
+    async function testApi() {
+      try {
+        setStatus("Testing /speechToken ...", "warn");
+        const tok = await getSpeechToken();
+        // Don’t dump the whole token by default (keeps UI clean)
+        output.value = JSON.stringify({ ok:true, region: tok.region, tokenPreview: tok.token.slice(0, 24) + "..." }, null, 2);
+        setStatus("Speech token OK.", "good");
+        saveLocal();
+      } catch (e) {
+        output.value = String(e);
+        setStatus("Test API failed. Check CORS / route / logs.", "bad");
+        saveLocal();
+      }
+    }
 
-    const res = await postJson("/RenderReport", payload);
+    async function startRecording() {
+      try {
+        if (!window.SpeechSDK) throw new Error("SpeechSDK not loaded. Check script include.");
+        setStatus("Fetching Speech token ...", "warn");
 
-    // RenderReport usually returns HTML (string). Handle JSON too if you changed backend.
-    let html = "";
-    if (typeof res === "string") html = res;
-    else if (res && typeof res === "object" && res.html) html = res.html;
-    else html = JSON.stringify(res, null, 2);
+        const tok = await getSpeechToken();
+        setStatus("Starting microphone ...", "warn");
 
-    // If it looks like HTML, open in a new tab
-    if (html.trim().startsWith("<!DOCTYPE") || html.trim().startsWith("<html") || html.includes("<body")){
-      lastReportHTML = html;
-      lastReportTitle = template.includes("SBAR") ? "SBAR rapport" : "Journalanteckning";
-      outputEl.value = "Report generated ✅ (opened in a new tab).";
-      setStatus("good", "Report generated (HTML).");
-      el("btnPdf").disabled = false;
+        const speechConfig = SpeechSDK.SpeechConfig.fromAuthorizationToken(tok.token, tok.region);
+        speechConfig.speechRecognitionLanguage = speechLang.value;
 
+        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+        recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+
+        btnStart.disabled = true;
+        btnStop.disabled = false;
+
+        let fullText = transcript.value ? transcript.value.trim() + "\n" : "";
+
+        recognizer.recognized = (s, e) => {
+          if (e.result && e.result.text) {
+            fullText += e.result.text + "\n";
+            transcript.value = fullText;
+            saveLocal();
+          }
+        };
+
+        recognizer.canceled = (s, e) => {
+          setStatus("Recording canceled. Check mic permissions.", "bad");
+          stopRecording();
+        };
+
+        recognizer.sessionStopped = () => {
+          stopRecording();
+        };
+
+        recognizer.startContinuousRecognitionAsync(
+          () => setStatus("Recording... speak now.", "good"),
+          (err) => { throw new Error(err); }
+        );
+      } catch (e) {
+        setStatus("Start recording failed.", "bad");
+        output.value = String(e);
+        btnStart.disabled = false;
+        btnStop.disabled = true;
+        recognizer = null;
+        saveLocal();
+      }
+    }
+
+    function stopRecording() {
+      try {
+        if (recognizer) {
+          recognizer.stopContinuousRecognitionAsync(() => {
+            recognizer.close();
+            recognizer = null;
+          }, () => {
+            try { recognizer.close(); } catch {}
+            recognizer = null;
+          });
+        }
+      } finally {
+        btnStart.disabled = false;
+        btnStop.disabled = true;
+        setStatus("Stopped.", "info");
+        saveLocal();
+      }
+    }
+
+    async function generateSummary(noteText, fmt, pid) {
+      const body = {
+        note: noteText,
+        format: fmt,
+        patientId: pid || ""
+      };
+      const { json, text } = await apiFetch("/SummarizeNote", { method:"POST", body });
+      // Some versions return JSON, others return string — handle both
+      return json ?? text;
+    }
+
+    async function generateReportHtml(transcriptText, pid, template, lang) {
+      const body = {
+        transcript: transcriptText,
+        patientId: pid || "",
+        template: template,
+        language: lang
+      };
+      const { text } = await apiFetch("/RenderReport", { method:"POST", body });
+      return text; // HTML
+    }
+
+    function openReportTab(html) {
       const w = window.open("", "_blank");
+      if (!w) throw new Error("Popup blocked. Allow popups for this site to open the report tab.");
       w.document.open();
       w.document.write(html);
       w.document.close();
-    }else{
-      outputEl.value = html;
-      setStatus("good", "Report response received.");
     }
 
-    saveLocal();
-  }catch(err){
-    outputEl.value = err.message || String(err);
-    setStatus("bad", "Generate failed. Check output + Function logs.");
-  }
-}
+    async function generate() {
+      try {
+        btnPdf.disabled = true;
+        lastReportHtml = "";
+        lastReportPayload = null;
 
-// ---- PDF download (client-side) ----
-async function downloadPdf(){
-  try{
-    if(!lastReportHTML){
-      setStatus("bad", "No report HTML available yet.");
-      return;
+        const mode = outputMode.value;
+        const pid = patientId.value.trim();
+        const t = transcript.value.trim();
+
+        if (!t) {
+          setStatus("Transcript is empty. Record or paste text first.", "warn");
+          return;
+        }
+
+        setStatus("Generating...", "warn");
+        output.value = "";
+
+        if (mode === "summary" || mode === "both") {
+          const sum = await generateSummary(t, summaryFormat.value, pid);
+          output.value = typeof sum === "string" ? sum : JSON.stringify(sum, null, 2);
+          setStatus("Summary generated.", "good");
+        }
+
+        if (mode === "report" || mode === "both") {
+          const html = await generateReportHtml(t, pid, reportTemplate.value, reportLang.value);
+          lastReportHtml = html;
+          lastReportPayload = { transcript: t, patientId: pid, template: reportTemplate.value, language: reportLang.value };
+
+          openReportTab(html);
+          btnPdf.disabled = false;
+
+          if (mode === "report") {
+            output.value = "Report opened in a new tab (HTML).";
+          } else {
+            output.value += "\n\n---\nReport opened in a new tab (HTML).";
+          }
+          setStatus("Report generated.", "good");
+        }
+
+        saveLocal();
+      } catch (e) {
+        output.value = String(e);
+        setStatus("Generate failed. Check Function logs + route/CORS.", "bad");
+        saveLocal();
+      }
     }
 
-    setStatus("", "Building PDF…");
+    async function downloadPdf() {
+      try {
+        if (!lastReportPayload) {
+          setStatus("No report payload yet. Generate a report first.", "warn");
+          return;
+        }
 
-    // Create a temporary DOM container
-    const tmp = document.createElement("div");
-    tmp.style.position = "fixed";
-    tmp.style.left = "-10000px";
-    tmp.style.top = "0";
-    tmp.innerHTML = lastReportHTML;
+        setStatus("Downloading PDF...", "warn");
 
-    // If HTML contains full <html>... we want the body content only
-    const body = tmp.querySelector("body");
-    const contentNode = body ? body : tmp;
+        // Preferred: backend PDF endpoint
+        try {
+          const r = await fetch(`${API_BASE}/RenderReportPdf`, {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify(lastReportPayload)
+          });
 
-    document.body.appendChild(tmp);
+          if (!r.ok) throw new Error(`RenderReportPdf failed (${r.status})`);
 
-    const pid = (el("patientId").value.trim() || "patient").replace(/[^\w\-]+/g, "_");
-    const date = new Date().toISOString().slice(0,10);
-    const filename = `${lastReportTitle}_${pid}_${date}.pdf`;
+          const blob = await r.blob();
+          const url = URL.createObjectURL(blob);
 
-    await html2pdf()
-      .set({
-        margin: 10,
-        filename,
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-      })
-      .from(contentNode)
-      .save();
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `CareSummary_Report_${(lastReportPayload.patientId || "demo")}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
 
-    document.body.removeChild(tmp);
-    setStatus("good", "PDF downloaded.");
-  }catch(err){
-    setStatus("bad", `PDF failed: ${err.message || err}`);
-  }
-}
+          setStatus("PDF downloaded.", "good");
+          return;
+        } catch {
+          // Fallback: open HTML and let user print/save as PDF
+          if (!lastReportHtml) throw new Error("No report HTML available to print.");
+          openReportTab(lastReportHtml);
+          setStatus("Opened HTML report. Use Print → Save as PDF.", "good");
+        }
+      } catch (e) {
+        output.value = String(e);
+        setStatus("PDF failed.", "bad");
+      }
+    }
 
-// ---- Utilities ----
-async function copyText(text){
-  await navigator.clipboard.writeText(text);
-}
+    function clearAll() {
+      transcript.value = "";
+      output.value = "";
+      lastReportHtml = "";
+      lastReportPayload = null;
+      btnPdf.disabled = true;
+      setStatus("Cleared.", "info");
+      saveLocal();
+    }
 
-async function testApi(){
-  try{
-    setStatus("", "Testing /speechToken…");
-    const res = await fetchSpeechToken();
-    outputEl.value = JSON.stringify(res, null, 2);
-    setStatus("good", "API OK: speechToken returned token + region.");
-  }catch(err){
-    outputEl.value = err.message || String(err);
-    setStatus("bad", "Test failed.");
-  }
-}
+    async function copyText(text) {
+      await navigator.clipboard.writeText(text);
+      setStatus("Copied.", "good");
+    }
 
-// ---- Buttons ----
-el("btnStart").addEventListener("click", startRecording);
-el("btnStop").addEventListener("click", stopRecording);
-el("btnGenerate").addEventListener("click", generate);
-el("btnTest").addEventListener("click", testApi);
+    // UI events
+    btnTest.addEventListener("click", testApi);
+    btnStart.addEventListener("click", startRecording);
+    btnStop.addEventListener("click", stopRecording);
+    btnGenerate.addEventListener("click", generate);
+    btnClear.addEventListener("click", clearAll);
+    btnCopyTranscript.addEventListener("click", () => copyText(transcript.value || ""));
+    btnCopyOutput.addEventListener("click", () => copyText(output.value || ""));
+    btnPdf.addEventListener("click", downloadPdf);
 
-el("btnClear").addEventListener("click", () => {
-  transcriptEl.value = "";
-  outputEl.value = "";
-  lastReportHTML = "";
-  el("btnPdf").disabled = true;
-  setStatus("", "Cleared.");
-  saveLocal();
-});
+    // Save on changes
+    [speechLang, outputMode, summaryFormat, patientId, reportTemplate, reportLang, transcript, output, chkSave].forEach(x => {
+      x.addEventListener("change", saveLocal);
+      x.addEventListener("input", saveLocal);
+    });
 
-el("btnCopyTranscript").addEventListener("click", async () => {
-  try{
-    await copyText(transcriptEl.value);
-    setStatus("good", "Transcript copied.");
-  }catch{ setStatus("bad", "Copy failed."); }
-});
+    outputMode.addEventListener("change", () => {
+      if (outputMode.value === "report") {
+        outFoot.textContent = "For Report mode, a new tab opens with the HTML report. PDF button downloads it if RenderReportPdf exists.";
+      } else if (outputMode.value === "summary") {
+        outFoot.textContent = "Summary will appear here as JSON/Text.";
+      } else {
+        outFoot.textContent = "Both: Summary appears here, and Report opens in a new tab.";
+      }
+    });
 
-el("btnCopyOutput").addEventListener("click", async () => {
-  try{
-    await copyText(outputEl.value);
-    setStatus("good", "Output copied.");
-  }catch{ setStatus("bad", "Copy failed."); }
-});
-
-el("btnPdf").addEventListener("click", downloadPdf);
-
-// Initial
-enableRecordingUI(false);
-setStatus("", "Ready.");
-</script>
+    // Init
+    loadLocal();
+    outputMode.dispatchEvent(new Event("change"));
+    setStatus("Ready.", "info");
+  </script>
 </body>
 </html>
