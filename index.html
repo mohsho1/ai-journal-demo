@@ -29,7 +29,6 @@
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
       --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
     }
-
     *{ box-sizing:border-box; }
     body{
       margin:0;
@@ -43,12 +42,8 @@
       min-height:100vh;
       padding: 34px 18px 60px;
     }
-
     .wrap{ max-width: 1200px; margin:0 auto; }
-    .top{
-      display:flex; align-items:center; gap:14px; flex-wrap:wrap;
-      margin-bottom: 10px;
-    }
+    .top{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom: 10px; }
     h1{ font-size: 34px; margin:0; letter-spacing:.2px; }
     .badge{
       font-size:12px; color: rgba(255,255,255,.85);
@@ -56,11 +51,7 @@
       background: rgba(255,255,255,.10);
       border: 1px solid rgba(255,255,255,.14);
     }
-    .sub{
-      margin: 6px 0 18px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
+    .sub{ margin: 6px 0 18px; color: var(--muted); line-height: 1.5; }
     .sub b{ color: rgba(255,255,255,.88); }
 
     .card{
@@ -118,7 +109,7 @@
       border-radius: 14px;
       cursor:pointer;
       transition: transform .05s ease, background .15s ease;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: .1px;
       display:inline-flex;
       gap: 8px;
@@ -137,12 +128,7 @@
       align-items:center;
       flex-wrap:wrap;
     }
-    .chk{
-      display:flex; align-items:center; gap:8px;
-      color: var(--muted);
-      font-size: 13px;
-      user-select:none;
-    }
+    .chk{ display:flex; align-items:center; gap:8px; color: var(--muted); font-size: 13px; user-select:none; }
     .chk input{ width:auto; }
 
     .status{
@@ -168,7 +154,7 @@
 
     textarea{
       width:100%;
-      min-height: 320px;
+      min-height: 260px;
       border-radius: var(--radius);
       border: 1px solid rgba(255,255,255,.12);
       background: rgba(0,0,0,.20);
@@ -180,12 +166,7 @@
       outline: none;
     }
 
-    .smallNote{
-      margin-top: 10px;
-      color: var(--muted2);
-      font-size: 12px;
-      line-height:1.45;
-    }
+    .smallNote{ margin-top: 10px; color: var(--muted2); font-size: 12px; line-height:1.45; }
     .smallNote code{ font-family: var(--mono); color: rgba(255,255,255,.85); }
 
     .twoCols{
@@ -195,9 +176,81 @@
       margin-top: 14px;
     }
 
+    .pillRow{
+      display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+      margin-top: 10px;
+    }
+    .pill{
+      font-size:12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      color: rgba(255,255,255,.78);
+      font-family: var(--mono);
+    }
+
+    .editorGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .section{
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.16);
+    }
+    .sectionHeader{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-bottom: 10px;
+    }
+    .sectionTitle{
+      font-weight: 900;
+      letter-spacing: .2px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .miniBtn{
+      padding: 7px 10px;
+      font-size: 12px;
+      border-radius: 12px;
+      font-weight: 800;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+    .miniBtn:disabled{ opacity:.45; cursor:not-allowed; }
+    .missing{
+      outline: 2px solid rgba(251,191,36,.35);
+      box-shadow: 0 0 0 4px rgba(251,191,36,.12);
+    }
+    .ok{
+      outline: 2px solid rgba(74,222,128,.25);
+      box-shadow: 0 0 0 4px rgba(74,222,128,.10);
+    }
+    .smallTextArea{
+      min-height: 120px;
+      font-family: var(--mono);
+    }
+
+    .cleanNote{
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.16);
+    }
+    .cleanHeader{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-bottom: 10px;
+    }
+    .cleanHeader b{ font-weight: 900; }
+    .mono{ font-family: var(--mono); }
+
     @media (max-width: 1020px){
       .grid{ grid-template-columns: 1fr 1fr; }
       .twoCols{ grid-template-columns: 1fr; }
+      .editorGrid{ grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -207,10 +260,11 @@
     <div class="top">
       <h1>CareSummary (Demo)</h1>
       <span class="badge">School project</span>
+      <span class="badge">Doctor-friendly editor</span>
     </div>
 
     <div class="sub">
-      Demo: record speech → transcribe (<b>Azure Speech</b>) → Summary/Report via <b>Azure Functions</b> + Foundry model.<br/>
+      Demo: record speech → transcribe (<b>Azure Speech</b>) → AI structures note (<b>SOAP/SBAR</b>) → generate report template + PDF.<br/>
       <b>Do not use real patient data.</b>
     </div>
 
@@ -228,7 +282,7 @@
         <div class="field">
           <label>Mode</label>
           <select id="outputMode">
-            <option value="summary" selected>Summary (JSON)</option>
+            <option value="summary" selected>Summary → Editor</option>
             <option value="report">Report (HTML template)</option>
           </select>
         </div>
@@ -283,6 +337,7 @@
         <button class="danger" id="btnClear">🧹 Clear</button>
 
         <button id="btnCopyTranscript">📋 Copy transcript</button>
+        <button id="btnCopyCleanNote">📋 Copy clean note</button>
         <button id="btnCopyOutput">📋 Copy output</button>
 
         <button id="btnDownloadPdf" disabled>⬇️ Download PDF</button>
@@ -303,7 +358,7 @@
       <!-- Health / Diagnostics panel -->
       <div class="card" style="padding:16px; margin-top:12px;">
         <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-          <div style="font-weight:800;">Health / Diagnostics</div>
+          <div style="font-weight:900;">Health / Diagnostics</div>
           <div style="color: rgba(255,255,255,.65); font-size:12px; font-family: var(--mono);">
             <span id="diagTime">Last check: never</span>
           </div>
@@ -312,14 +367,14 @@
         <div style="margin-top:10px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
           <div style="padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background: rgba(0,0,0,.16);">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-              <div style="font-weight:700;">API Base</div>
+              <div style="font-weight:800;">API Base</div>
               <div id="diagApiBaseBadge" class="badge">unset</div>
             </div>
             <div id="diagApiBase" style="margin-top:8px; font-family: var(--mono); color: rgba(255,255,255,.85); font-size:12px; word-break:break-all;"></div>
           </div>
 
           <div style="padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background: rgba(0,0,0,.16);">
-            <div style="font-weight:700; margin-bottom:8px;">Endpoints</div>
+            <div style="font-weight:800; margin-bottom:8px;">Endpoints</div>
             <div style="display:grid; gap:8px;">
               <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
                 <div style="color: rgba(255,255,255,.75); font-size:13px;">/speechToken</div>
@@ -338,7 +393,7 @@
         </div>
 
         <div style="margin-top:10px; padding:12px; border-radius:14px; border:1px solid rgba(255,255,255,.12); background: rgba(0,0,0,.16);">
-          <div style="font-weight:700; margin-bottom:8px;">Last error</div>
+          <div style="font-weight:800; margin-bottom:8px;">Last error</div>
           <div id="diagError" style="font-family: var(--mono); color: rgba(255,255,255,.70); font-size:12px; white-space:pre-wrap;">none</div>
         </div>
 
@@ -348,19 +403,43 @@
       </div>
 
       <div class="smallNote">
-        Summary calls <code>POST /SummarizeNote</code>.<br/>
-        Report calls <code>POST /RenderReport</code> (opens in new tab). PDF downloads the generated report.
+        Summary calls <code>POST /SummarizeNote</code> and fills the editor. Report calls <code>POST /RenderReport</code>. PDF downloads the last report.
       </div>
 
       <div class="twoCols">
         <div class="card" style="padding:16px;">
-          <div style="font-weight:700; margin-bottom:10px;">Transcript</div>
+          <div style="font-weight:900; margin-bottom:10px;">Transcript</div>
           <textarea id="txtTranscript" placeholder="Press Start and speak..."></textarea>
+          <div class="pillRow" id="pillRow"></div>
         </div>
 
         <div class="card" style="padding:16px;">
-          <div style="font-weight:700; margin-bottom:10px;">Output</div>
-          <textarea id="txtOutput" placeholder="Output will appear here..."></textarea>
+          <div style="font-weight:900; margin-bottom:10px;">Raw Output (debug)</div>
+          <textarea id="txtOutput" placeholder="Raw JSON/HTML output will appear here..."></textarea>
+        </div>
+      </div>
+
+      <!-- Editor -->
+      <div class="card" style="padding:16px; margin-top:12px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+          <div style="font-weight:900;">Note editor (doctor view)</div>
+          <div class="badge mono" id="editorModeBadge">SOAP</div>
+        </div>
+
+        <div class="editorGrid" id="editorGrid"></div>
+
+        <div class="cleanNote">
+          <div class="cleanHeader">
+            <b>Clean note preview</b>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="miniBtn" id="btnRebuildClean">↻ Rebuild</button>
+              <button class="miniBtn" id="btnCopyClean2">📋 Copy</button>
+            </div>
+          </div>
+          <textarea id="txtCleanNote" class="mono" style="min-height: 220px;" placeholder="Generate a summary to populate the editor..."></textarea>
+          <div class="smallNote">
+            This is what a doctor would paste into a journal system (demo).
+          </div>
         </div>
       </div>
     </div>
@@ -410,7 +489,7 @@
   function safeJsonParse(s){ try { return JSON.parse(s); } catch { return null; } }
 
   // Local storage
-  const LS_KEY = "caresummary_demo_state_v4";
+  const LS_KEY = "caresummary_demo_state_v5";
 
   function apiBase(){
     const v = el("apiBase").value.trim();
@@ -433,8 +512,11 @@
       if(typeof st.saveLocal === "boolean") el("chkSaveLocal").checked = st.saveLocal;
       if(st.transcript) el("txtTranscript").value = st.transcript;
       if(st.output) el("txtOutput").value = st.output;
+      if(st.editor) window.__EDITOR_STATE = st.editor;
+      if(st.cleanNote) el("txtCleanNote").value = st.cleanNote;
     }catch{}
   }
+
   function saveLocal(){
     if(!el("chkSaveLocal").checked) return;
     const st = {
@@ -448,10 +530,13 @@
       saveLocal: el("chkSaveLocal").checked,
       transcript: el("txtTranscript").value,
       output: el("txtOutput").value,
+      editor: window.__EDITOR_STATE || null,
+      cleanNote: el("txtCleanNote").value,
       updatedAt: new Date().toISOString()
     };
     try{ localStorage.setItem(LS_KEY, JSON.stringify(st)); }catch{}
   }
+
   function clearLocal(){ try{ localStorage.removeItem(LS_KEY); }catch{} }
 
   async function fetchJson(url, options){
@@ -469,15 +554,262 @@
     return await fetchJson(apiBase() + EP.speechToken, { method: "GET" });
   }
 
+  // --------------------------
+  // Doctor editor: SOAP / SBAR
+  // --------------------------
+  const EDITOR_SCHEMAS = {
+    SOAP: [
+      { key: "kontaktorsak", label: "Kontaktorsak", placeholder: "Varför söker patienten? (t.ex. ont i halsen)" },
+      { key: "anamnes", label: "Anamnes", placeholder: "Symtom, duration, tidigare sjukdomar, läkemedel..." },
+      { key: "status", label: "Status", placeholder: "AT, vitalparametrar, statusfynd (om angivet)" },
+      { key: "bedomning", label: "Bedömning", placeholder: "Trolig diagnos / differentialdiagnoser" },
+      { key: "plan", label: "Plan", placeholder: "Åtgärder: prover, behandling, råd" },
+      { key: "uppfoljning", label: "Uppföljning", placeholder: "När/om återbesök, varningssymtom" },
+      { key: "signatur", label: "Signatur", placeholder: "t.ex. Dr Demo" },
+    ],
+    SBAR: [
+      { key: "situation", label: "Situation", placeholder: "Kort: vad gäller det nu?" },
+      { key: "bakgrund", label: "Bakgrund", placeholder: "Relevant bakgrund" },
+      { key: "aktuellt_tillstand_bedomning", label: "Aktuellt tillstånd/Bedömning", placeholder: "Status + bedömning" },
+      { key: "rekommendation", label: "Rekommendation", placeholder: "Vad behöver göras?" },
+      { key: "signatur", label: "Signatur", placeholder: "t.ex. Dr Demo" },
+    ]
+  };
+
+  function isMissing(value){
+    const v = String(value ?? "").trim();
+    if(!v) return true;
+    return v.toLowerCase() === "ej angivet";
+  }
+
+  function editorMode(){
+    const fmt = (el("noteFormat").value || "SOAP").toUpperCase();
+    return fmt === "SBAR" ? "SBAR" : "SOAP";
+  }
+
+  function ensureEditorState(){
+    if(!window.__EDITOR_STATE) window.__EDITOR_STATE = {};
+    const mode = editorMode();
+    if(!window.__EDITOR_STATE[mode]) window.__EDITOR_STATE[mode] = {};
+    // Always have signatur default
+    if(!window.__EDITOR_STATE[mode].signatur) window.__EDITOR_STATE[mode].signatur = "Dr Demo";
+    return window.__EDITOR_STATE;
+  }
+
+  function renderEditor(){
+    const mode = editorMode();
+    el("editorModeBadge").textContent = mode;
+
+    ensureEditorState();
+    const st = window.__EDITOR_STATE[mode];
+
+    const grid = el("editorGrid");
+    grid.innerHTML = "";
+
+    for(const field of EDITOR_SCHEMAS[mode]){
+      const wrap = document.createElement("div");
+      wrap.className = "section";
+
+      const header = document.createElement("div");
+      header.className = "sectionHeader";
+
+      const title = document.createElement("div");
+      title.className = "sectionTitle";
+      title.textContent = field.label;
+
+      const btnCopy = document.createElement("button");
+      btnCopy.className = "miniBtn";
+      btnCopy.textContent = "📋 Copy";
+      btnCopy.addEventListener("click", async () => {
+        const val = String(st[field.key] ?? "").trim();
+        await navigator.clipboard.writeText(val);
+        setStatus("good", `Copied: ${field.label}`);
+      });
+
+      header.appendChild(title);
+      header.appendChild(btnCopy);
+
+      const ta = document.createElement("textarea");
+      ta.className = "smallTextArea";
+      ta.id = `ed_${mode}_${field.key}`;
+      ta.placeholder = field.placeholder;
+      ta.value = st[field.key] ?? "Ej angivet";
+      ta.addEventListener("input", () => {
+        st[field.key] = ta.value;
+        decorateEditorField(ta);
+        rebuildCleanNote(false);
+        saveLocal();
+      });
+
+      wrap.appendChild(header);
+      wrap.appendChild(ta);
+
+      grid.appendChild(wrap);
+
+      decorateEditorField(ta);
+    }
+
+    rebuildCleanNote(false);
+  }
+
+  function decorateEditorField(textarea){
+    const v = textarea.value;
+    textarea.classList.remove("missing","ok");
+    if(isMissing(v)) textarea.classList.add("missing");
+    else textarea.classList.add("ok");
+  }
+
+  function buildCleanSoap(st, meta){
+    const pid = meta?.patientId || (el("patientId").value.trim() || "P-001");
+    const dt = meta?.generatedAt ? new Date(meta.generatedAt).toLocaleString() : new Date().toLocaleString();
+    const sign = (st.signatur || "Dr Demo").trim();
+
+    return [
+      "DEMO – Journalanteckning (SOAP)",
+      `Patient-ID: ${pid}`,
+      `Datum: ${dt}`,
+      "",
+      `Kontaktorsak: ${st.kontaktorsak || "Ej angivet"}`,
+      "",
+      `Anamnes:`,
+      `${st.anamnes || "Ej angivet"}`,
+      "",
+      `Status:`,
+      `${st.status || "Ej angivet"}`,
+      "",
+      `Bedömning:`,
+      `${st.bedomning || "Ej angivet"}`,
+      "",
+      `Plan:`,
+      `${st.plan || "Ej angivet"}`,
+      "",
+      `Uppföljning:`,
+      `${st.uppfoljning || "Ej angivet"}`,
+      "",
+      `Signatur: ${sign}`
+    ].join("\n");
+  }
+
+  function buildCleanSbar(st, meta){
+    const pid = meta?.patientId || (el("patientId").value.trim() || "P-001");
+    const dt = meta?.generatedAt ? new Date(meta.generatedAt).toLocaleString() : new Date().toLocaleString();
+    const sign = (st.signatur || "Dr Demo").trim();
+
+    return [
+      "DEMO – SBAR",
+      `Patient-ID: ${pid}`,
+      `Datum: ${dt}`,
+      "",
+      `Situation:`,
+      `${st.situation || "Ej angivet"}`,
+      "",
+      `Bakgrund:`,
+      `${st.bakgrund || "Ej angivet"}`,
+      "",
+      `Aktuellt tillstånd / Bedömning:`,
+      `${st.aktuellt_tillstand_bedomning || "Ej angivet"}`,
+      "",
+      `Rekommendation:`,
+      `${st.rekommendation || "Ej angivet"}`,
+      "",
+      `Signatur: ${sign}`
+    ].join("\n");
+  }
+
+  function rebuildCleanNote(setStatusLine=true){
+    const mode = editorMode();
+    ensureEditorState();
+    const st = window.__EDITOR_STATE[mode];
+    const meta = window.__LAST_SUMMARY_META || null;
+
+    const txt = mode === "SBAR" ? buildCleanSbar(st, meta) : buildCleanSoap(st, meta);
+    el("txtCleanNote").value = txt;
+    if(setStatusLine) setStatus("good", "Clean note rebuilt.");
+    saveLocal();
+  }
+
+  function extractRedFlags(transcript){
+    // Simple demo keyword scan (we'll upgrade this later in Phase 3)
+    const t = (transcript || "").toLowerCase();
+    const flags = [];
+    const rules = [
+      { k: "bröstsmärta", label: "Bröstsmärta" },
+      { k: "andnöd", label: "Andnöd" },
+      { k: "svim", label: "Svimning" },
+      { k: "nackstel", label: "Nackstelhet" },
+      { k: "förlam", label: "Förlamning" },
+      { k: "stroke", label: "Stroke-symtom" },
+      { k: "blod i", label: "Blod (nämns)" },
+      { k: "suicid", label: "Suicidtankar (demo)" }
+    ];
+    for(const r of rules){
+      if(t.includes(r.k)) flags.push(r.label);
+    }
+    return flags;
+  }
+
+  function renderPills(){
+    const row = el("pillRow");
+    row.innerHTML = "";
+    const transcript = el("txtTranscript").value || "";
+    const flags = extractRedFlags(transcript);
+    if(flags.length){
+      const p = document.createElement("span");
+      p.className = "pill";
+      p.style.borderColor = "rgba(251,191,36,.35)";
+      p.style.background = "rgba(251,191,36,.10)";
+      p.textContent = "⚠️ Red flags: " + flags.join(", ");
+      row.appendChild(p);
+    } else {
+      const p = document.createElement("span");
+      p.className = "pill";
+      p.textContent = "No red-flag keywords detected (demo).";
+      row.appendChild(p);
+    }
+  }
+
+  async function fillEditorFromSummary(summaryObj){
+    const mode = editorMode();
+    ensureEditorState();
+    const st = window.__EDITOR_STATE[mode];
+
+    window.__LAST_SUMMARY_META = summaryObj?.meta || null;
+
+    if(mode === "SOAP"){
+      st.kontaktorsak = summaryObj.kontaktorsak ?? st.kontaktorsak ?? "Ej angivet";
+      st.anamnes      = summaryObj.anamnes ?? st.anamnes ?? "Ej angivet";
+      st.status       = summaryObj.status ?? st.status ?? "Ej angivet";
+      st.bedomning    = summaryObj.bedomning ?? st.bedomning ?? "Ej angivet";
+      st.plan         = summaryObj.plan ?? st.plan ?? "Ej angivet";
+      st.uppfoljning  = summaryObj.uppfoljning ?? st.uppfoljning ?? "Ej angivet";
+      st.signatur     = summaryObj.signatur ?? st.signatur ?? "Dr Demo";
+    } else {
+      st.situation   = summaryObj.situation ?? st.situation ?? "Ej angivet";
+      st.bakgrund    = summaryObj.bakgrund ?? st.bakgrund ?? "Ej angivet";
+      st.aktuellt_tillstand_bedomning = summaryObj.aktuellt_tillstand_bedomning ?? st.aktuellt_tillstand_bedomning ?? "Ej angivet";
+      st.rekommendation = summaryObj.rekommendation ?? st.rekommendation ?? "Ej angivet";
+      st.signatur    = summaryObj.signatur ?? st.signatur ?? "Dr Demo";
+    }
+
+    renderEditor();
+    rebuildCleanNote(false);
+    saveLocal();
+  }
+
+  // --------------------------
+  // Summary + Report calls
+  // --------------------------
   async function callSummarize(){
     const transcript = el("txtTranscript").value.trim();
     const patientId = el("patientId").value.trim() || "P-001";
-    const format = el("noteFormat").value;
+    const format = editorMode();
 
     if(!transcript){
       setStatus("warn", "Transcript is empty.");
       return;
     }
+
+    renderPills();
 
     const body = { note: transcript, patientId, format };
 
@@ -488,7 +820,9 @@
     });
 
     el("txtOutput").value = JSON.stringify(out, null, 2);
-    setStatus("good", "Summary generated.");
+    await fillEditorFromSummary(out);
+
+    setStatus("good", "Summary generated + editor updated.");
     saveLocal();
   }
 
@@ -505,6 +839,8 @@
       setStatus("warn", "Transcript is empty.");
       return;
     }
+
+    renderPills();
 
     const body = {
       transcript,
@@ -546,6 +882,9 @@
     w.document.close();
   }
 
+  // --------------------------
+  // Health check
+  // --------------------------
   async function runHealthCheck(){
     const base = apiBase();
     el("diagApiBase").textContent = base;
@@ -558,7 +897,6 @@
     setDiagBadge("diagSummarize", "checking…", "warn");
     setDiagBadge("diagReport", "checking…", "warn");
 
-    // 1) speechToken
     try{
       const t = await fetchJson(base + EP.speechToken, { method: "GET" });
       if(t && t.token && t.region){
@@ -572,16 +910,15 @@
       setDiagError("speechToken: " + err.message);
     }
 
-    // 2) SummarizeNote
     try{
       const testNote = "Patient reports headache for 3 days. No fever. Pain 6/10.";
-      const body = { note: testNote, format: el("noteFormat").value || "SOAP", patientId: el("patientId").value.trim() || "P-TEST" };
+      const body = { note: testNote, format: editorMode(), patientId: el("patientId").value.trim() || "P-TEST" };
       const s = await fetchJson(base + EP.summarize, {
         method: "POST",
         headers: { "Content-Type":"application/json" },
         body: JSON.stringify(body)
       });
-      if(s && s.meta && (s.text || s.kontaktorsak || s.anamnes)){
+      if(s && s.meta && (s.text || s.kontaktorsak || s.anamnes || s.situation)){
         setDiagBadge("diagSummarize", "OK", "good");
       } else {
         setDiagBadge("diagSummarize", "Unexpected", "warn");
@@ -592,7 +929,6 @@
       setDiagError("SummarizeNote: " + err.message);
     }
 
-    // 3) RenderReport
     try{
       const transcript = "Patienten beskriver huvudvärk i tre dagar. Ingen feber. Smärta 6/10.";
       const body = {
@@ -631,7 +967,9 @@
     }
   }
 
+  // --------------------------
   // Speech recognition
+  // --------------------------
   let recognizer = null;
   let isRecording = false;
 
@@ -662,6 +1000,7 @@
           if(add){
             const t = el("txtTranscript");
             t.value = (t.value ? (t.value.trimEnd() + " ") : "") + add;
+            renderPills();
             saveLocal();
           }
         }
@@ -706,6 +1045,9 @@
     });
   }
 
+  // --------------------------
+  // PDF download
+  // --------------------------
   async function downloadPdf(){
     if(!lastReportHtml){
       setStatus("warn", "No report generated yet.");
@@ -744,7 +1086,18 @@
     }
   }
 
-  // Buttons
+  // --------------------------
+  // Clipboard helpers
+  // --------------------------
+  async function copyCleanNote(){
+    const v = el("txtCleanNote").value || "";
+    await navigator.clipboard.writeText(v);
+    setStatus("good", "Clean note copied.");
+  }
+
+  // --------------------------
+  // Wire buttons
+  // --------------------------
   el("btnTest").addEventListener("click", async () => {
     setStatus("warn", "Running health check…");
     try{
@@ -782,9 +1135,18 @@
   el("btnClear").addEventListener("click", () => {
     el("txtTranscript").value = "";
     el("txtOutput").value = "";
+    el("txtCleanNote").value = "";
     lastReportHtml = "";
     el("btnDownloadPdf").disabled = true;
+
+    // reset editor state
+    window.__EDITOR_STATE = null;
+    window.__LAST_SUMMARY_META = null;
+
     setStatus("", "Cleared.");
+    renderPills();
+    renderEditor();
+
     if(el("chkSaveLocal").checked) saveLocal(); else clearLocal();
   });
 
@@ -798,9 +1160,27 @@
     setStatus("good", "Output copied.");
   });
 
+  el("btnCopyCleanNote").addEventListener("click", copyCleanNote);
+  el("btnCopyClean2").addEventListener("click", copyCleanNote);
+
+  el("btnRebuildClean").addEventListener("click", () => rebuildCleanNote(true));
+
   el("btnDownloadPdf").addEventListener("click", downloadPdf);
 
-  ["speechLang","outputMode","noteFormat","reportTemplate","reportLang","patientId","txtTranscript","txtOutput","chkSaveLocal","apiBase"]
+  // Changes that should re-render editor/preview
+  el("noteFormat").addEventListener("change", () => {
+    renderEditor();
+    rebuildCleanNote(false);
+    saveLocal();
+  });
+
+  el("txtTranscript").addEventListener("input", () => {
+    renderPills();
+    saveLocal();
+  });
+
+  // Generic change save
+  ["speechLang","outputMode","reportTemplate","reportLang","patientId","chkSaveLocal","apiBase"]
     .forEach(id => el(id).addEventListener("change", () => { updateApiHint(); saveLocal(); }));
 
   el("apiBase").addEventListener("input", () => {
@@ -819,6 +1199,8 @@
     el("diagApiBase").textContent = apiBase();
     setDiagBadge("diagApiBaseBadge", apiBase() ? "set" : "unset", apiBase() ? "good" : "bad");
 
+    renderPills();
+    renderEditor();
     setStatus("", "Ready.");
   })();
 </script>
